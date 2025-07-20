@@ -1,23 +1,54 @@
 import TransactionManager from './transactionManager.js';
 import ChartManager from './chartManager.js';
-import { formatCurrency, downloadJSON, readJSONFile } from './utils.js'; // Import downloadJSON dan readJSONFile
+import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const transactionManager = new TransactionManager();
+// Konfigurasi Supabase
+const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
+
+let supabase;
+let transactionManager;
 let chartManager;
+let currentUserId = null; // Untuk menyimpan ID pengguna yang sedang login
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async di sini
+  // Inisialisasi Supabase Client
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Otentikasi Anonim 
+  // Ini akan membuat user baru setiap kali aplikasi dimuat jika belum ada sesi
+  try {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      console.error("Error signing in anonymously:", error.message);
+      // Tampilkan pesan error ke pengguna jika gagal login
+      return;
+    }
+    currentUserId = data.user.id;
+    console.log("Signed in anonymously with user ID:", currentUserId);
+  } catch (err) {
+    console.error("Failed to sign in anonymously:", err.message);
+    return;
+  }
+
+  // Inisialisasi TransactionManager dengan Supabase client dan user ID
+  // Parameter userId ini akan digunakan oleh TransactionManager untuk filter data
+  transactionManager = new TransactionManager(SUPABASE_URL, SUPABASE_ANON_KEY, currentUserId);
+
   // Inisialisasi ChartManager
-  chartManager = new ChartManager(); // Tidak perlu parameter di sini karena chartManager akan mencari elemen canvas sendiri
+  chartManager = new ChartManager();
 
-  // Render awal transaksi, ringkasan, dan grafik
-  renderTransactions();
-  updateSummary();
-  updateCharts();
+  // Muat transaksi dari Supabase dan perbarui UI
+  await transactionManager.loadTransactions(); // Muat data awal dari Supabase
+  await renderTransactions();
+  await updateSummary();
+  await updateCharts();
 
   // Event listener untuk form penambahan transaksi
   const form = document.getElementById('transaction-form');
   if (form) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async e => { // Tambahkan async
       e.preventDefault();
 
       const title = form.title.value.trim();
@@ -26,27 +57,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = form.type.value;
 
       if (!title || isNaN(amount) || !category || !type) {
-        // Mengganti alert dengan modal kustom atau pesan di UI
         console.error("Harap isi semua kolom dengan benar!");
-        // Anda bisa menambahkan logika untuk menampilkan pesan error di UI di sini
         return;
       }
 
       const newTransaction = { title, amount, category, type };
-      transactionManager.addTransaction(newTransaction);
-      form.reset(); // Mereset form setelah submit
-      renderTransactions(); // Memperbarui daftar transaksi
-      updateSummary(); // Memperbarui ringkasan
-      updateCharts(); // Memperbarui grafik
+      await transactionManager.addTransaction(newTransaction); // Gunakan await
+      form.reset();
+      await transactionManager.loadTransactions(); // Muat ulang data setelah menambah
+      await renderTransactions();
+      await updateSummary();
+      await updateCharts();
     });
   }
 
   // Event listener untuk input pencarian
   const searchInput = document.getElementById('search');
   if (searchInput) {
-    searchInput.addEventListener('input', e => {
+    searchInput.addEventListener('input', async e => { // Tambahkan async
       const keyword = e.target.value;
-      renderTransactions(keyword); // Memperbarui daftar transaksi berdasarkan kata kunci
+      await renderTransactions(keyword); // Gunakan await
     });
   }
 
@@ -54,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('reset');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-      // Menggunakan modal kustom untuk password reset
       showPasswordModal();
     });
   }
@@ -63,8 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
+      // Backup akan mengunduh data yang ada di memori lokal
       const allTransactions = transactionManager.getTransactions();
-      downloadJSON(allTransactions, 'expense_backup.json'); // Memanggil fungsi downloadJSON dari utils.js
+      downloadJSON(allTransactions, 'expense_backup.json');
     });
   }
 
@@ -72,29 +102,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const importBtn = document.getElementById('import-btn');
   if (importBtn) {
     importBtn.addEventListener('click', () => {
-      // Membuat input file secara dinamis
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = 'application/json'; // Hanya menerima file JSON
-      fileInput.onchange = (event) => {
+      fileInput.accept = 'application/json';
+      fileInput.onchange = async (event) => { // Tambahkan async
         const file = event.target.files[0];
         if (file) {
-          readJSONFile(file, (importedData) => {
-            // Mengganti data transaksi yang ada dengan data yang diimpor
+          readJSONFile(file, async (importedData) => { // Tambahkan async
+            // CATATAN PENTING:
+            // Fungsi 'Restore' saat ini hanya memuat data dari file ke memori lokal aplikasi.
+            // Ini TIDAK secara otomatis menyinkronkan data tersebut ke Supabase.
+            // Jika Anda ingin mengimpor data ke Supabase, diperlukan implementasi lebih lanjut,
+            // seperti menghapus semua data user yang ada di Supabase, lalu memasukkan data backup satu per satu.
+            // Hal ini perlu penanganan ID yang cermat untuk menghindari duplikasi atau konflik.
+            console.warn("Fungsi 'Restore' saat ini hanya memuat data ke memori lokal. Untuk sinkronisasi ke Supabase, diperlukan implementasi lebih lanjut.");
+
+            // Mengganti data lokal di transactionManager
             transactionManager.transactions = importedData;
-            transactionManager.save(); // Menyimpan data yang diimpor ke localStorage
-            renderTransactions(); // Memperbarui daftar transaksi
-            updateSummary(); // Memperbarui ringkasan
-            updateCharts(); // Memperbarui grafik
-            // Anda bisa menambahkan pesan sukses di UI di sini
-            console.log("Data berhasil diimpor!");
+
+            // Memperbarui UI dengan data yang dimuat dari file
+            await renderTransactions();
+            await updateSummary();
+            await updateCharts();
+            console.log("Data berhasil dimuat dari file. Untuk sinkronisasi ke Supabase, perlu implementasi lebih lanjut.");
           });
         }
       };
-      fileInput.click(); // Memicu klik pada input file tersembunyi
+      fileInput.click();
     });
   }
-
 
   // Event listener untuk navigasi sidebar
   document.querySelectorAll('.menu-link').forEach(link => {
@@ -102,23 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const targetId = link.dataset.target;
 
-      // Sembunyikan semua halaman
       document.querySelectorAll('.page').forEach(page => {
         page.classList.add('hidden');
       });
 
-      // Hapus kelas 'active' dari semua link menu
       document.querySelectorAll('.menu-link').forEach(link => {
         link.classList.remove('active');
       });
 
-      // Tampilkan halaman target
       const targetPage = document.getElementById(targetId);
       if (targetPage) {
         targetPage.classList.remove('hidden');
       }
 
-      // Tambahkan kelas 'active' ke link yang diklik
       link.classList.add('active');
     });
   });
@@ -128,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const formSection = document.getElementById('form-section');
   if (addTransactionBtn && formSection) {
     addTransactionBtn.addEventListener('click', () => {
-      formSection.classList.toggle('hidden'); // Toggle visibilitas form
+      formSection.classList.toggle('hidden');
     });
   }
 
@@ -140,8 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function showPasswordModal() {
     if (passwordModal) {
       passwordModal.classList.remove('hidden');
-      resetPasswordInput.value = ''; // Kosongkan input password
-      resetPasswordInput.focus(); // Fokuskan input
+      resetPasswordInput.value = '';
+      resetPasswordInput.focus();
     }
   }
 
@@ -152,15 +184,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (confirmResetBtn) {
-    confirmResetBtn.addEventListener('click', () => {
+    confirmResetBtn.addEventListener('click', async () => { // Tambahkan async
       const password = resetPasswordInput.value;
-      if (password === "hansohe") { // Password hardcoded
-        // Mengganti confirm dengan modal kustom jika diperlukan, atau langsung reset
+      if (password === "hansohe") {
         if (confirm('Apakah yakin ingin mereset semua transaksi?')) { // Menggunakan confirm bawaan browser untuk contoh
-          transactionManager.resetAll();
-          renderTransactions();
-          updateSummary();
-          updateCharts();
+          await transactionManager.resetAll(); // Gunakan await
+          await transactionManager.loadTransactions(); // Muat ulang data setelah reset
+          await renderTransactions();
+          await updateSummary();
+          await updateCharts();
           hidePasswordModal();
           console.log("Data berhasil direset!");
         } else {
@@ -168,13 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         console.error("Password salah. Reset dibatalkan.");
-        // Anda bisa menambahkan pesan error di UI di sini
         hidePasswordModal();
       }
     });
   }
 
-  // Tambahkan event listener untuk menutup modal jika mengklik di luar konten modal
   if (passwordModal) {
     passwordModal.addEventListener('click', (e) => {
       if (e.target === passwordModal) {
@@ -185,28 +215,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Fungsi untuk merender daftar transaksi
-function renderTransactions(keyword = '') {
+async function renderTransactions(keyword = '') { // Tambahkan async
   const list = document.getElementById('transaction-list');
   if (!list) return;
 
-  list.innerHTML = ''; // Kosongkan daftar transaksi sebelumnya
+  list.innerHTML = '';
 
-  // Dapatkan transaksi berdasarkan kata kunci pencarian
   const transactions = keyword
     ? transactionManager.search(keyword)
     : transactionManager.getTransactions();
 
-  // Perbarui total transaksi di dashboard
   const totalTransactionsEl = document.getElementById('total-transactions');
   if (totalTransactionsEl) totalTransactionsEl.textContent = transactions.length;
 
-
   if (transactions.length === 0) {
-    list.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada transaksi</td></tr>'; // Ubah colspan menjadi 4
+    list.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada transaksi</td></tr>';
     return;
   }
 
-  // Render setiap transaksi ke dalam tabel
   transactions.forEach(t => {
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -220,19 +246,19 @@ function renderTransactions(keyword = '') {
     list.appendChild(row);
   });
 
-  // Tambahkan event listener untuk tombol hapus pada setiap transaksi
   document.querySelectorAll('button[data-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      transactionManager.deleteTransaction(btn.dataset.id); // Hapus transaksi
-      renderTransactions(keyword); // Perbarui daftar transaksi
-      updateSummary(); // Perbarui ringkasan
-      updateCharts(); // Perbarui grafik
+    btn.addEventListener('click', async () => { // Tambahkan async
+      await transactionManager.deleteTransaction(btn.dataset.id); // Gunakan await
+      await transactionManager.loadTransactions(); // Muat ulang data setelah menghapus
+      await renderTransactions(keyword);
+      await updateSummary();
+      await updateCharts();
     });
   });
 }
 
 // Fungsi untuk memperbarui ringkasan (income, expense, balance)
-function updateSummary() {
+async function updateSummary() { // Tambahkan async
   const { income, expense, balance } = transactionManager.getSummary();
   const incomeEl = document.getElementById('income');
   const expenseEl = document.getElementById('expense');
@@ -244,14 +270,12 @@ function updateSummary() {
 }
 
 // Fungsi untuk memperbarui semua grafik
-function updateCharts() {
+async function updateCharts() { // Tambahkan async
   const monthlyData = transactionManager.getMonthlySummary();
   chartManager.renderBarChart(monthlyData);
 
-  // Perbarui pie chart (pengeluaran berdasarkan kategori)
   const categoryData = transactionManager.getDataGroupedByCategory();
   chartManager.renderPieChart(categoryData);
 
-  // Perbarui yearly chart
-  chartManager.renderYearlyChart(monthlyData); // Menggunakan data bulanan yang sama untuk yearly chart
+  chartManager.renderYearlyChart(monthlyData);
 }
