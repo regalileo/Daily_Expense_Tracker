@@ -74,10 +74,12 @@ header h1 {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap; /* Tambahkan ini untuk responsivitas */
 }
 
 .summary-box {
   flex: 1;
+  min-width: 200px; /* Tambahkan ini untuk responsivitas */
   background-color: #1e1e1e;
   padding: 1.5rem;
   border-radius: 12px;
@@ -99,10 +101,12 @@ header h1 {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap; /* Tambahkan ini untuk responsivitas */
 }
 
 .quick-actions button {
   flex: 1;
+  min-width: 150px; /* Tambahkan ini untuk responsivitas */
   padding: 0.75rem;
   background-color: #2c2c2e;
   border: none;
@@ -118,7 +122,7 @@ header h1 {
   color: #000;
 }
 
-/* Form */
+/* Form Sections (General) */
 .form-section {
   background-color: #1e1e1e;
   padding: 1.5rem;
@@ -126,26 +130,62 @@ header h1 {
   margin-bottom: 2rem;
 }
 
-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+.form-group {
+  margin-bottom: 1rem; /* Spasi antar grup form */
 }
 
+.form-group label {
+  display: block; /* Agar label di atas input */
+  margin-bottom: 0.5rem;
+  color: #bbb;
+  font-weight: 600;
+}
+
+/* Form Inputs & Selects */
 form input,
 form select,
-form button {
-  flex: 1 1 200px;
+.filter-controls input, /* Terapkan styling ini ke input filter juga */
+.filter-controls select { /* Terapkan styling ini ke select filter juga */
+  width: 100%; /* Agar input mengisi lebar penuh */
   padding: 0.75rem;
   border-radius: 8px;
   border: none;
+  background-color: #2c2c2e; /* Warna latar belakang input */
+  color: #f0f0f0; /* Warna teks input */
+  box-sizing: border-box; /* Pastikan padding tidak menambah lebar */
 }
 
-form button {
+/* Form Buttons */
+form button,
+.filter-controls button { /* Terapkan styling ini ke tombol filter juga */
   background-color: #00ffc8;
   font-weight: bold;
   cursor: pointer;
+  padding: 0.75rem; /* Pastikan padding konsisten */
+  border-radius: 8px; /* Pastikan border-radius konsisten */
+  border: none;
+  color: #000; /* Warna teks tombol */
+  transition: background 0.3s;
 }
+
+form button:hover,
+.filter-controls button:hover {
+  background-color: #00e6b8; /* Sedikit lebih gelap saat hover */
+}
+
+/* Filter Controls Specific Styling */
+.filter-controls .filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsif grid */
+  gap: 1.5rem; /* Spasi antar item grid */
+  align-items: end; /* Pastikan tombol rata bawah dengan input */
+}
+
+.filter-controls .full-width-btn {
+  grid-column: 1 / -1; /* Tombol mengisi seluruh lebar grid */
+  margin-top: 0.5rem; /* Sedikit spasi di atas tombol */
+}
+
 
 /* Transaction List */
 .transactions-section {
@@ -158,29 +198,87 @@ form button {
   margin-bottom: 1rem;
   border-radius: 10px;
   border: none;
+  background-color: #2c2c2e; /* Warna latar belakang search input */
+  color: #f0f0f0; /* Warna teks search input */
 }
 
-#transaction-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
 }
 
-#transaction-list li {
+table th,
+table td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid #3c3c3e; /* Garis pemisah antar baris */
+}
+
+table th {
   background-color: #2c2c2e;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  color: #00ffc8;
+  font-weight: 600;
+  border-radius: 8px 8px 0 0; /* Sudut bulat untuk header tabel */
 }
+
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table tbody tr {
+  background-color: #1e1e1e; /* Latar belakang baris */
+  transition: background-color 0.2s ease;
+}
+
+table tbody tr:hover {
+  background-color: #2c2c2e; /* Efek hover pada baris */
+}
+
+table td button {
+  background-color: #f44336; /* Warna merah untuk tombol hapus */
+  color: #fff;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+table td button:hover {
+  background-color: #d32f2f;
+}
+
 
 /* Chart Section */
 .chart-section {
   background-color: #1e1e1e;
   padding: 1rem;
   border-radius: 10px;
+  margin-bottom: 2rem; /* Tambahkan margin bawah */
+}
+
+.charts-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem; /* Spasi antar chart-box */
+  justify-content: center;
+}
+
+.chart-box {
+  flex: 1;
+  min-width: 300px; /* Ukuran minimum untuk responsivitas */
+  background-color: #2c2c2e;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.chart-box h4 {
+  text-align: center;
+  color: #00ffc8;
+  margin-bottom: 1rem;
 }
 
 /* Modal */
@@ -194,6 +292,7 @@ form button {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000; /* Pastikan modal di atas konten lain */
 }
 
 .modal-content {
@@ -203,18 +302,88 @@ form button {
   color: #fff;
   width: 300px;
   text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.modal-content h3 {
+  color: #00ffc8;
+  margin-bottom: 1.5rem;
 }
 
 .modal-content input {
-  margin-top: 1rem;
+  margin-bottom: 1rem;
   padding: 0.75rem;
   width: 100%;
   border-radius: 8px;
   border: none;
   background: #333;
   color: #fff;
+  box-sizing: border-box;
 }
 
-.hidden {
-  display: none !important;
+.modal-content button {
+  background-color: #00ffc8;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  color: #000;
+  transition: background 0.3s;
+}
+
+.modal-content button:hover {
+  background-color: #00e6b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 1rem;
+    box-shadow: none;
+    border-bottom: 2px solid #1c1c1e;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .sidebar .user-profile {
+    display: none; /* Sembunyikan profil di mobile */
+  }
+
+  .sidebar .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .sidebar .menu a {
+    margin: 0.5rem;
+    padding: 0.5rem 0.8rem;
+  }
+
+  .main-content {
+    padding: 1rem;
+    margin-top: 0; /* Hapus margin top jika sidebar di atas */
+  }
+
+  .summary, .quick-actions {
+    flex-direction: column;
+  }
+
+  .summary-box, .quick-actions button {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .filter-controls .filter-grid {
+    grid-template-columns: 1fr; /* Satu kolom di mobile */
+  }
+
+  .filter-controls .form-group {
+    margin-bottom: 1rem;
+  }
 }
