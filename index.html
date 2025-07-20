@@ -19,7 +19,7 @@
     <nav class="menu">
       <a href="#" class="menu-link active" data-target="home">🏠 Home</a>
       <a href="#" class="menu-link" data-target="expenses">💰 Expenses</a>
-      <a href="#" class="menu-link" data-target="reports">🧾 Reports</a>
+      <a href="#" class="menu-link" data-target="reports">📊 Reports</a>
       <a href="#" class="menu-link" data-target="settings">⚙️ Settings</a>
       <a href="#" class="menu-link" data-target="support">📞 Support</a>
     </nav>
@@ -33,7 +33,7 @@
       </header>
 
       <section class="summary">
-        <div class="summary-box" id="balanceBox">
+        <div class="summary-box">
           <h3>Current Balance</h3>
           <p id="balance">Rp0</p>
         </div>
@@ -52,10 +52,10 @@
       </section>
 
       <section class="quick-actions">
-        <button id="add-transaction-btn">➕ New Expense</button>
+        <button id="add-transaction-btn">➕ New Transaction</button>
         <button id="export-btn">📤 Backup</button>
         <button id="import-btn">📥 Restore</button>
-        <button id="reset">♻️ Reset</button> <!-- ID diperbaiki -->
+        <button id="reset">♻️ Reset</button>
       </section>
 
       <section class="form-section hidden" id="form-section">
@@ -93,14 +93,24 @@
               <th>Action</th>
             </tr>
           </thead>
-          <tbody id="transaction-list"></tbody>
+          <tbody id="transaction-list">
+            <tr><td colspan="4">Belum ada transaksi</td></tr>
+          </tbody>
         </table>
       </section>
 
       <section class="chart-section">
-        <h2>Expense Chart</h2>
-        <canvas id="barChart"></canvas>
-        <canvas id="pieChart"></canvas>
+        <h2>Charts</h2>
+        <div class="charts-wrapper">
+          <div class="chart-box">
+            <h4>Monthly Income vs Expense</h4>
+            <canvas id="barChart" height="200"></canvas>
+          </div>
+          <div class="chart-box">
+            <h4>Category Breakdown</h4>
+            <canvas id="pieChart" height="200"></canvas>
+          </div>
+        </div>
       </section>
     </section>
 
