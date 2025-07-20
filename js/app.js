@@ -3,7 +3,6 @@ import ChartManager from './chartManager.js';
 import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Konfigurasi Supabase
 const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
 
@@ -12,9 +11,24 @@ let transactionManager;
 let chartManager;
 let currentUserId = null; // Untuk menyimpan ID pengguna yang sedang login
 
-document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async di sini
+document.addEventListener('DOMContentLoaded', async () => {
+  // --- DEBUGGING SUPABASE INITIALIZATION ---
+  console.log('Debugging Supabase Client Initialization:');
+  console.log('SUPABASE_URL value:', SUPABASE_URL);
+  console.log('SUPABASE_URL type:', typeof SUPABASE_URL);
+  console.log('SUPABASE_ANON_KEY value:', SUPABASE_ANON_KEY);
+  console.log('SUPABASE_ANON_KEY type:', typeof SUPABASE_ANON_KEY);
+  // --- END DEBUGGING ---
+
   // Inisialisasi Supabase Client HANYA DI SINI
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (initError) {
+    console.error("Error initializing Supabase client:", initError);
+    // Jika inisialisasi gagal di sini, hentikan eksekusi lebih lanjut
+    return;
+  }
+
 
   // Otentikasi Anonim (untuk contoh sederhana)
   try {
@@ -31,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
   }
 
   // Inisialisasi TransactionManager dengan instance Supabase yang sudah ada dan user ID
-  // Kita tidak lagi melewatkan URL dan Anon Key ke TransactionManager
   transactionManager = new TransactionManager(supabase, currentUserId);
 
   // Inisialisasi ChartManager
@@ -61,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
 
       const newTransaction = { title, amount, category, type };
       await transactionManager.addTransaction(newTransaction);
-      await transactionManager.loadTransactions(); // Muat ulang data setelah menambah
+      await transactionManager.loadTransactions();
       await renderTransactions();
       await updateSummary();
       await updateCharts();
