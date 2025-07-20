@@ -6,6 +6,15 @@ export function formatCurrency(amount) {
   }).format(amount);
 }
 
+export function formatDate(date) {
+  const d = new Date(date);
+  return d.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function saveToStorage(key, data) {
   localStorage.setItem(key, JSON.stringify(data));
 }
