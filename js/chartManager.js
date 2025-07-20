@@ -1,4 +1,4 @@
-import { TransactionManager } from './transactionManager.js';
+import TransactionManager from './transactionManager.js';
 
 let barChart = null;
 
