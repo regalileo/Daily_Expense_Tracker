@@ -5,8 +5,8 @@ import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 // Konfigurasi Supabase 
-const SUPABASE_URL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
+const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
 let supabase;
 let transactionManager;
 let chartManager;
