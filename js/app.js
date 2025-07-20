@@ -113,7 +113,7 @@ function renderTransactions(keyword = '') {
     row.innerHTML = `
       <td>${t.title}</td>
       <td>${t.category}</td>
-      <td>${t.type === 'income' ? '+' : '-'}${formatRupiah(t.amount)}</td>
+      <td>${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}</td>
       <td>
         <button class="btn btn-sm btn-danger" data-id="${t.id}">Hapus</button>
       </td>
