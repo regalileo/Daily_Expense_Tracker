@@ -1,95 +1,68 @@
-import { formatRupiah } from './utils.js';
+import { transactionManager } from './transactionManager.js';
 
-export default class ChartManager {
-  constructor(ctxBar, ctxPie) {
-    this.ctxBar = ctxBar;
-    this.ctxPie = ctxPie;
-    this.barChart = null;
-    this.pieChart = null;
+let barChart = null;
+
+export function updateCharts() {
+  const monthlyData = transactionManager.getMonthlySummary();
+
+  const labels = Object.keys(monthlyData).sort(); // contoh: ['2025-06', '2025-07']
+  const incomeData = labels.map(month => monthlyData[month].income);
+  const expenseData = labels.map(month => monthlyData[month].expense);
+
+  const ctx = document.getElementById('barChart').getContext('2d');
+
+  if (barChart) {
+    barChart.destroy();
   }
 
-  renderBarChart(dataByCategory) {
-    const labels = Object.keys(dataByCategory);
-    const data = Object.values(dataByCategory);
-
-    if (this.barChart) this.barChart.destroy();
-
-    this.barChart = new Chart(this.ctxBar, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Pengeluaran/Kategori',
-          data,
-          backgroundColor: this._generateColors(labels.length),
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: context => formatRupiah(context.parsed.y)
-            }
-          }
+  barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels.map(label => convertToMonthName(label)), // '2025-07' -> 'Juli 2025'
+      datasets: [
+        {
+          label: 'Pemasukan',
+          data: incomeData,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)'
         },
-        scales: {
-          y: {
-            ticks: {
-              callback: value => formatRupiah(value)
-            }
-          }
+        {
+          label: 'Pengeluaran',
+          data: expenseData,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)'
         }
-      }
-    });
-  }
-
-  renderPieChart(dataByCategory) {
-    const labels = Object.keys(dataByCategory);
-    const data = Object.values(dataByCategory);
-
-    if (this.pieChart) this.pieChart.destroy();
-
-    this.pieChart = new Chart(this.ctxPie, {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Distribusi Pengeluaran',
-          data,
-          backgroundColor: this._generateColors(labels.length),
-        }]
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Perbandingan Bulanan Pemasukan & Pengeluaran'
+        },
+        legend: {
+          position: 'bottom'
+        }
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#ccc',
-              font: { size: 14 }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: context => `${context.label}: ${formatRupiah(context.parsed)}`
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function (value) {
+              return 'Rp' + value.toLocaleString('id-ID');
             }
           }
         }
       }
-    });
-  }
-
-  _generateColors(count) {
-    const baseColors = [
-      '#00b894', '#6c5ce7', '#fd79a8', '#e17055', '#fab1a0',
-      '#0984e3', '#ffeaa7', '#d63031', '#55efc4', '#a29bfe'
-    ];
-    const result = [];
-    for (let i = 0; i < count; i++) {
-      result.push(baseColors[i % baseColors.length]);
     }
-    return result;
-  }
+  });
+}
+
+// Fungsi bantu untuk ubah '2025-07' → 'Juli 2025'
+function convertToMonthName(key) {
+  const [year, month] = key.split('-');
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  return `${monthNames[parseInt(month) - 1]} ${year}`;
 }
