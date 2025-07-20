@@ -137,9 +137,9 @@ function updateSummary() {
   const expenseEl = document.getElementById('expense');
   const balanceEl = document.getElementById('balance');
 
-  if (incomeEl) incomeEl.textContent = formatRupiah(income);
-  if (expenseEl) expenseEl.textContent = formatRupiah(expense);
-  if (balanceEl) balanceEl.textContent = formatRupiah(balance);
+  if (incomeEl) incomeEl.textContent = formatCurrency(income);
+  if (expenseEl) expenseEl.textContent = formatCurrency(expense);
+  if (balanceEl) balanceEl.textContent = formatCurrency(balance);
 }
 
 function updateCharts() {
