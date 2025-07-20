@@ -1,4 +1,74 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: 0.3s;
+}
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --accent: #4caf50;
+}
 body.dark {
-    background-color: #111827;
-    color: white;
+  --bg: #121212;
+  --text: #e0e0e0;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  background: var(--accent);
+  padding: 1em;
+  color: white;
+}
+main {
+  padding: 1em;
+}
+.controls,
+.search-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 1em;
+}
+input,
+select,
+button {
+  padding: 0.5em;
+  font-size: 1em;
+}
+#transactionList {
+  margin-top: 1em;
+}
+.transaction {
+  display: flex;
+  justify-content: space-between;
+  background: #f0f0f0;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+}
+.transaction.dark {
+  background: #333;
+}
+canvas {
+  max-width: 100%;
+  margin: 1em 0;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 1em;
+  max-width: 300px;
+  width: 90%;
+}
+.modal.show {
+  display: flex;
 }
