@@ -1,4 +1,4 @@
-export default class ChartManager {
+export class ChartManager {
   constructor() {
     this.barChart = null;
     this.pieChart = null;
