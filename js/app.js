@@ -1,75 +1,97 @@
-import { TransactionManager } from './transactionManager.js';
-import { ChartManager } from './chartManager.js';
-import { formatRupiah } from './utils.js';
+import { TransactionManager } from "./transactionManager.js";
+import { ChartManager } from "./chartManager.js";
+import { formatRupiah, saveToStorage, getFromStorage } from "./utils.js";
 
-const tm = new TransactionManager();
-const chart = new ChartManager(document.getElementById('chart'));
+const transMgr = new TransactionManager();
+const chartMgr = new ChartManager();
 
-const form = document.getElementById('transactionForm');
-const list = document.getElementById('transactionList');
-const totalBalance = document.getElementById('totalBalance');
-const statsElem = document.getElementById('stats');
+const el = (id) => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0, 10);
 
-function render(filtered = null) {
-    const data = filtered || tm.transactions;
-    list.innerHTML = '';
-    data.forEach((tx, i) => {
-    const li = document.createElement('li');
-    li.className = 'p-2 border rounded flex justify-between';
-    li.innerHTML = `
-    <span>${tx.date} - ${tx.description} (${tx.category})</span>
-    <span>${formatRupiah(tx.amount)} <button data-index="${i}" class="text-red-500">✖</button></span>
-    `;
-    list.appendChild(li);
-});
-totalBalance.textContent = formatRupiah(tm.getTotal(data));
-const stats = tm.getStats(data);
-statsElem.textContent = Object.entries(stats).map(([k, v]) => `${k}: ${formatRupiah(v)}`).join(', ');
-chart.render(stats);
+function updateUI() {
+  const list = el("transactionList");
+  list.innerHTML = "";
+  const filtered = transMgr.filterTransactions(el("searchInput").value);
+  filtered.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "transaction";
+    div.innerHTML = `
+      <span>${t.description} (${t.category}) - ${formatRupiah(t.amount)}</span>
+      <div>
+        <button onclick="deleteTransaction(${t.id})">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+
+  el("todayTotal").textContent = formatRupiah(transMgr.getTodayTotal());
+  el("monthTotal").textContent = formatRupiah(transMgr.getMonthTotal());
+
+  const saldo = parseFloat(el("initialBalance").value) || 0;
+  el("totalBalance").textContent = formatRupiah(transMgr.getBalance(saldo));
+
+  chartMgr.renderCategoryChart(transMgr.getCategoryStats());
+  chartMgr.renderDateChart(transMgr.getDateStats());
 }
 
-form.onsubmit = e => {
-e.preventDefault();
-const tx = {
-    date: document.getElementById('date').value,
-    description: document.getElementById('description').value,
-    amount: Number(document.getElementById('amount').value),
-    category: document.getElementById('category').value
-};
-tm.add(tx);
-form.reset();
-render();
+window.deleteTransaction = function (id) {
+  transMgr.deleteTransaction(id);
+  updateUI();
 };
 
-list.onclick = e => {
-if (e.target.tagName === 'BUTTON') {
-    tm.delete(Number(e.target.dataset.index));
-    render();
-}
+el("addTransaction").onclick = () => {
+  const desc = el("descInput").value;
+  const amt = parseFloat(el("amountInput").value);
+  const cat = el("categoryInput").value;
+  if (!desc || !amt) return;
+  transMgr.addTransaction({ description: desc, amount: amt, category: cat, date: today() });
+  el("descInput").value = "";
+  el("amountInput").value = "";
+  updateUI();
 };
 
-document.getElementById('applyFilter').onclick = () => {
-const start = document.getElementById('startDate').value;
-const end = document.getElementById('endDate').value;
-const cat = document.getElementById('filterCategory').value;
-render(tm.filter({ start, end, category: cat }));
+el("initialBalance").oninput = () => updateUI();
+el("searchInput").oninput = () => updateUI();
+
+el("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(transMgr.transactions)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "backup.json";
+  a.click();
 };
 
-document.getElementById('exportCSV').onclick = () => {
-const rows = [['Tanggal', 'Deskripsi', 'Jumlah', 'Kategori']];
-tm.transactions.forEach(tx => {
-    rows.push([tx.date, tx.description, tx.amount, tx.category]);
-});
-const csv = rows.map(r => r.join(',')).join('\n');
-const blob = new Blob([csv], { type: 'text/csv' });
-const link = document.createElement('a');
-link.href = URL.createObjectURL(blob);
-link.download = 'transaksi.csv';
-link.click();
+el("importFile").onchange = (e) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    transMgr.transactions = JSON.parse(reader.result);
+    transMgr.save();
+    updateUI();
+  };
+  reader.readAsText(e.target.files[0]);
 };
 
-document.getElementById('toggleDarkMode').onclick = () => {
-document.body.classList.toggle('dark');
+el("resetBtn").onclick = () => {
+  el("resetModal").classList.add("show");
 };
 
-render();
+el("confirmReset").onclick = () => {
+  if (el("resetPassword").value === "hansohe") {
+    transMgr.resetAll();
+    el("resetModal").classList.remove("show");
+    updateUI();
+  }
+};
+
+el("cancelReset").onclick = () => {
+  el("resetModal").classList.remove("show");
+};
+
+el("themeToggle").onclick = () => {
+  document.body.classList.toggle("dark");
+  saveToStorage("theme", document.body.classList.contains("dark"));
+};
+
+window.onload = () => {
+  if (getFromStorage("theme")) document.body.classList.add("dark");
+  updateUI();
+};
