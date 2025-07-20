@@ -1,66 +1,82 @@
-export default class ChartManager {
-  constructor(barChartEl) {
-    this.barChartEl = barChartEl;
+export class ChartManager {
+  constructor() {
     this.barChart = null;
+    this.pieChart = null;
   }
 
-  renderBarChart(monthlyData) {
-    const labels = Object.keys(monthlyData).sort(); // ['2025-06', '2025-07']
-    const incomeData = labels.map(month => monthlyData[month].income);
-    const expenseData = labels.map(month => monthlyData[month].expense);
-
-    const ctx = this.barChartEl.getContext('2d');
-
+  renderBarChart(data) {
+    const ctx = document.getElementById('barChart').getContext('2d');
     if (this.barChart) this.barChart.destroy();
+
+    const months = Object.keys(data);
+    const incomes = months.map(month => data[month].income || 0);
+    const expenses = months.map(month => data[month].expense || 0);
 
     this.barChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labels.map(label => this.convertToMonthName(label)),
+        labels: months,
         datasets: [
           {
-            label: 'Pemasukan',
-            data: incomeData,
-            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            label: 'Income',
+            data: incomes,
+            backgroundColor: '#4caf50'
           },
           {
-            label: 'Pengeluaran',
-            data: expenseData,
-            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+            label: 'Expense',
+            data: expenses,
+            backgroundColor: '#f44336'
           }
         ]
       },
       options: {
         responsive: true,
         plugins: {
+          legend: {
+            position: 'top'
+          },
           title: {
             display: true,
-            text: 'Perbandingan Bulanan Pemasukan vs Pengeluaran'
-          },
-          legend: {
-            position: 'bottom'
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function (value) {
-                return 'Rp' + value.toLocaleString('id-ID');
-              }
-            }
+            text: 'Monthly Income vs Expense'
           }
         }
       }
     });
   }
 
-  convertToMonthName(key) {
-    const [year, month] = key.split('-');
-    const monthNames = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    return `${monthNames[parseInt(month) - 1]} ${year}`;
+  renderPieChart(data) {
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    if (this.pieChart) this.pieChart.destroy();
+
+    const categories = Object.keys(data);
+    const values = categories.map(cat => data[cat]);
+
+    this.pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: categories,
+        datasets: [{
+          label: 'Category Breakdown',
+          data: values,
+          backgroundColor: [
+            '#ff6384',
+            '#36a2eb',
+            '#ffce56',
+            '#4caf50',
+            '#9c27b0',
+            '#ff9800'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Expenses by Category'
+          }
+        }
+      }
+    });
   }
 }
