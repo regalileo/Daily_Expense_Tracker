@@ -1,26 +1,41 @@
-export class ChartManager {
-    constructor(ctx) {
-    this.ctx = ctx;
-    this.chart = null;
-}
+import { formatRupiah } from "./utils.js";
 
-render(data) {
+export class ChartManager {
+  constructor() {
+    this.categoryCtx = document.getElementById("categoryChart");
+    this.dateCtx = document.getElementById("dateChart");
+    this.categoryChart = null;
+    this.dateChart = null;
+  }
+
+  renderCategoryChart(data) {
     const labels = Object.keys(data);
     const values = Object.values(data);
+    this.categoryChart?.destroy();
+    this.categoryChart = new Chart(this.categoryCtx, {
+      type: "pie",
+      data: {
+        labels,
+        datasets: [{ data: values }]
+      },
+    });
+  }
 
-    if (this.chart) this.chart.destroy();
-
-    this.chart = new Chart(this.ctx, {
-        type: 'pie',
-        data: {
+  renderDateChart(data) {
+    const labels = Object.keys(data);
+    const values = Object.values(data);
+    this.dateChart?.destroy();
+    this.dateChart = new Chart(this.dateCtx, {
+      type: "line",
+      data: {
         labels,
         datasets: [{
-            label: 'Pengeluaran',
-            data: values,
-            backgroundColor: [
-            '#60A5FA', '#F59E0B', '#EF4444', '#10B981', '#8B5CF6']
+          label: "Pengeluaran Harian",
+          data: values,
+          borderColor: "green",
+          fill: false
         }]
-    }
+      }
     });
-}
+  }
 }
