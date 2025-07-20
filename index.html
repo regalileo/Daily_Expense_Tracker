@@ -51,13 +51,13 @@
           <input type="number" name="amount" placeholder="Amount" required />
           <select name="category" required>
             <option value="" disabled selected>Select category</option>
-            <option value="Upah">💰 Upah</option>
             <option value="Makanan">🍔 Makanan</option>
             <option value="Transportasi">🚗 Transportasi</option>
             <option value="Hiburan">🎮 Hiburan</option>
             <option value="Tagihan">🧾 Tagihan</option>
             <option value="Pakaian">👗 Pakaian</option>
             <option value="Lainnya">📦 Lainnya</option>
+            <option value="Upah">💰 Upah</option>
           </select>
           <select name="type" required>
             <option value="" disabled selected>Select type</option>
@@ -105,10 +105,73 @@
       </section>
     </section>
 
+    <!-- BAGIAN BARU UNTUK HALAMAN EXPENSES -->
     <section id="expenses" class="page hidden">
-      <h2>📄 Halaman Expenses</h2>
-      <p>Belum ada konten khusus untuk halaman ini.</p>
+      <header>
+        <h2>💰 Detail Pengeluaran</h2>
+      </header>
+
+      <section class="filter-controls form-section">
+        <h3>Filter Pengeluaran</h3>
+        <div class="form-group">
+          <label for="expense-category-filter">Kategori:</label>
+          <select id="expense-category-filter">
+            <option value="">Semua Kategori</option>
+            <option value="Makanan">Makanan</option>
+            <option value="Transportasi">Transportasi</option>
+            <option value="Hiburan">Hiburan</option>
+            <option value="Tagihan">Tagihan</option>
+            <option value="Pakaian">Pakaian</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="expense-start-date">Dari Tanggal:</label>
+          <input type="date" id="expense-start-date">
+        </div>
+        <div class="form-group">
+          <label for="expense-end-date">Sampai Tanggal:</label>
+          <input type="date" id="expense-end-date">
+        </div>
+        <button id="apply-expense-filters">Terapkan Filter</button>
+      </section>
+
+      <section class="expense-summary summary">
+        <div class="summary-box">
+          <h3>Total Pengeluaran Filtered</h3>
+          <p id="filtered-expense-total">Rp0</p>
+        </div>
+      </section>
+
+      <section class="transactions-section">
+        <h3>Daftar Pengeluaran</h3>
+        <table class="expense-list-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Deskripsi</th>
+              <th>Kategori</th>
+              <th>Jumlah</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="full-expense-list">
+            <tr><td colspan="5" class="text-center">Belum ada pengeluaran yang difilter</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="chart-section">
+        <h3>Grafik Pengeluaran</h3>
+        <div class="charts-wrapper">
+          <div class="chart-box">
+            <h4>Distribusi Pengeluaran per Kategori</h4>
+            <canvas id="expenseCategoryPieChart" height="200"></canvas>
+          </div>
+        </div>
+      </section>
     </section>
+    <!-- AKHIR BAGIAN BARU UNTUK HALAMAN EXPENSES -->
 
     <section id="reports" class="page hidden">
       <h2>📈 Halaman Laporan</h2>
@@ -134,7 +197,7 @@
     </div>
   </div>
 
-  <!-- Letakkan di akhir body agar DOM sudah siap -->
   <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/expensePageManager.js"></script> 
 </body>
 </html>
