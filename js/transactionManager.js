@@ -67,4 +67,26 @@ export default class TransactionManager {
     }
     return data;
   }
+
+  // ✅ Tambahan untuk grafik bulanan
+  getMonthlySummary() {
+    const summary = {};
+
+    this.transactions.forEach(t => {
+      const date = new Date(t.id); // id = timestamp
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+      if (!summary[key]) {
+        summary[key] = { income: 0, expense: 0 };
+      }
+
+      if (t.type === 'income') {
+        summary[key].income += parseInt(t.amount);
+      } else {
+        summary[key].expense += parseInt(t.amount);
+      }
+    });
+
+    return summary;
+  }
 }
