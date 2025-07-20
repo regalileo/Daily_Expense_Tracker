@@ -19,68 +19,111 @@
       <p class="username">Regal Nugraha</p>
     </div>
     <nav class="menu">
-      <a href="#" class="active">🏠 Home</a>
-      <a href="#">💰 Expenses</a>
-      <a href="#">🧾 Reports</a>
-      <a href="#">⚙️ Settings</a>
-      <a href="#">📞 Support</a>
+      <a href="#" class="menu-link active" data-target="home">🏠 Home</a>
+      <a href="#" class="menu-link" data-target="expenses">💰 Expenses</a>
+      <a href="#" class="menu-link" data-target="reports">🧾 Reports</a>
+      <a href="#" class="menu-link" data-target="settings">⚙️ Settings</a>
+      <a href="#" class="menu-link" data-target="support">📞 Support</a>
     </nav>
   </div>
 
   <main class="main-content">
-    <header>
-      <h1>Expense Dashboard</h1>
-    </header>
+    <!-- Halaman HOME -->
+    <section id="home" class="page">
+      <header>
+        <h1>Expense Dashboard</h1>
+      </header>
 
-    <section class="summary">
-      <div class="summary-box" id="balanceBox">
-        <h3>Current Balance</h3>
-        <p id="balance">Rp0</p>
-      </div>
-      <div class="summary-box">
-        <h3>Total Expenses</h3>
-        <p id="total-expenses">Rp0</p>
-      </div>
-      <div class="summary-box">
-        <h3>Total Transactions</h3>
-        <p id="total-transactions">0</p>
-      </div>
+      <section class="summary">
+        <div class="summary-box" id="balanceBox">
+          <h3>Current Balance</h3>
+          <p id="balance">Rp0</p>
+        </div>
+        <div class="summary-box">
+          <h3>Total Expenses</h3>
+          <p id="expense">Rp0</p>
+        </div>
+        <div class="summary-box">
+          <h3>Total Transactions</h3>
+          <p id="total-transactions">0</p>
+        </div>
+      </section>
+
+      <section class="quick-actions">
+        <button id="add-transaction-btn">➕ New Expense</button>
+        <button id="export-btn">📤 Backup</button>
+        <button id="import-btn">📥 Restore</button>
+        <button id="reset-btn">♻️ Reset</button>
+      </section>
+
+      <section class="form-section hidden" id="form-section">
+        <h2>Add New Transaction</h2>
+        <form id="transaction-form">
+          <input type="text" id="description" placeholder="Description" required />
+          <input type="number" id="amount" placeholder="Amount" required />
+          <select id="category" required>
+            <option value="" disabled selected>Select category</option>
+            <option value="Makanan">🍔 Makanan</option>
+            <option value="Transportasi">🚗 Transportasi</option>
+            <option value="Hiburan">🎮 Hiburan</option>
+            <option value="Tagihan">🧾 Tagihan</option>
+            <option value="Pakaian">👗 Pakaian</option>
+            <option value="Lainnya">📦 Lainnya</option>
+          </select>
+          <select id="type" required>
+            <option value="" disabled selected>Select type</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+          </select>
+          <button type="submit">💾 Save</button>
+        </form>
+      </section>
+
+      <section class="transactions-section">
+        <h2>Recent Transactions</h2>
+        <input type="text" id="search" placeholder="🔍 Search transaction..." />
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="transaction-list"></tbody>
+        </table>
+      </section>
+
+      <section class="chart-section">
+        <h2>Expense Chart</h2>
+        <canvas id="barChart"></canvas>
+        <canvas id="pieChart"></canvas>
+      </section>
     </section>
 
-    <section class="quick-actions">
-      <button id="add-transaction-btn">➕ New Expense</button>
-      <button id="export-btn">📤 Backup</button>
-      <button id="import-btn">📥 Restore</button>
-      <button id="reset-btn">♻️ Reset</button>
+    <!-- Halaman Expenses -->
+    <section id="expenses" class="page hidden">
+      <h2>📄 Halaman Expenses</h2>
+      <p>Belum ada konten khusus untuk halaman ini.</p>
     </section>
 
-    <section class="form-section hidden" id="form-section">
-      <h2>Add New Transaction</h2>
-      <form id="transaction-form">
-        <input type="text" id="description" placeholder="Description" required />
-        <input type="number" id="amount" placeholder="Amount" required />
-        <select id="category" required>
-          <option value="" disabled selected>Select category</option>
-          <option value="Makanan">🍔 Makanan</option>
-          <option value="Transportasi">🚗 Transportasi</option>
-          <option value="Hiburan">🎮 Hiburan</option>
-          <option value="Tagihan">🧾 Tagihan</option>
-          <option value="Pakaian">👗 Pakaian</option>
-          <option value="Lainnya">📦 Lainnya</option>
-        </select>
-        <button type="submit">💾 Save</button>
-      </form>
+    <!-- Halaman Reports -->
+    <section id="reports" class="page hidden">
+      <h2>📊 Halaman Laporan</h2>
+      <p>Statistik dan laporan akan ditampilkan di sini.</p>
     </section>
 
-    <section class="transactions-section">
-      <h2>Recent Transactions</h2>
-      <input type="text" id="search" placeholder="🔍 Search transaction..." />
-      <ul id="transaction-list"></ul>
+    <!-- Halaman Settings -->
+    <section id="settings" class="page hidden">
+      <h2>⚙️ Pengaturan</h2>
+      <p>Fitur pengaturan aplikasi akan dikembangkan di sini.</p>
     </section>
 
-    <section class="chart-section">
-      <h2>Expense Chart</h2>
-      <canvas id="expense-chart"></canvas>
+    <!-- Halaman Support -->
+    <section id="support" class="page hidden">
+      <h2>📞 Dukungan</h2>
+      <p>Hubungi kami untuk bantuan.</p>
     </section>
   </main>
 
