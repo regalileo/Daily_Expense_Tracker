@@ -13,16 +13,14 @@ let chartManager;
 let currentUserId = null; // Untuk menyimpan ID pengguna yang sedang login
 
 document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async di sini
-  // Inisialisasi Supabase Client
+  // Inisialisasi Supabase Client HANYA DI SINI
   supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Otentikasi Anonim 
-  // Ini akan membuat user baru setiap kali aplikasi dimuat jika belum ada sesi
+  // Otentikasi Anonim (untuk contoh sederhana)
   try {
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) {
       console.error("Error signing in anonymously:", error.message);
-      // Tampilkan pesan error ke pengguna jika gagal login
       return;
     }
     currentUserId = data.user.id;
@@ -32,15 +30,15 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
     return;
   }
 
-  // Inisialisasi TransactionManager dengan Supabase client dan user ID
-  // Parameter userId ini akan digunakan oleh TransactionManager untuk filter data
-  transactionManager = new TransactionManager(SUPABASE_URL, SUPABASE_ANON_KEY, currentUserId);
+  // Inisialisasi TransactionManager dengan instance Supabase yang sudah ada dan user ID
+  // Kita tidak lagi melewatkan URL dan Anon Key ke TransactionManager
+  transactionManager = new TransactionManager(supabase, currentUserId);
 
   // Inisialisasi ChartManager
   chartManager = new ChartManager();
 
   // Muat transaksi dari Supabase dan perbarui UI
-  await transactionManager.loadTransactions(); // Muat data awal dari Supabase
+  await transactionManager.loadTransactions();
   await renderTransactions();
   await updateSummary();
   await updateCharts();
@@ -48,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
   // Event listener untuk form penambahan transaksi
   const form = document.getElementById('transaction-form');
   if (form) {
-    form.addEventListener('submit', async e => { // Tambahkan async
+    form.addEventListener('submit', async e => {
       e.preventDefault();
 
       const title = form.title.value.trim();
@@ -62,8 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
       }
 
       const newTransaction = { title, amount, category, type };
-      await transactionManager.addTransaction(newTransaction); // Gunakan await
-      form.reset();
+      await transactionManager.addTransaction(newTransaction);
       await transactionManager.loadTransactions(); // Muat ulang data setelah menambah
       await renderTransactions();
       await updateSummary();
@@ -74,9 +71,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
   // Event listener untuk input pencarian
   const searchInput = document.getElementById('search');
   if (searchInput) {
-    searchInput.addEventListener('input', async e => { // Tambahkan async
+    searchInput.addEventListener('input', async e => {
       const keyword = e.target.value;
-      await renderTransactions(keyword); // Gunakan await
+      await renderTransactions(keyword);
     });
   }
 
@@ -92,7 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      // Backup akan mengunduh data yang ada di memori lokal
       const allTransactions = transactionManager.getTransactions();
       downloadJSON(allTransactions, 'expense_backup.json');
     });
@@ -105,22 +101,14 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInput.accept = 'application/json';
-      fileInput.onchange = async (event) => { // Tambahkan async
+      fileInput.onchange = async (event) => {
         const file = event.target.files[0];
         if (file) {
-          readJSONFile(file, async (importedData) => { // Tambahkan async
-            // CATATAN PENTING:
-            // Fungsi 'Restore' saat ini hanya memuat data dari file ke memori lokal aplikasi.
-            // Ini TIDAK secara otomatis menyinkronkan data tersebut ke Supabase.
-            // Jika Anda ingin mengimpor data ke Supabase, diperlukan implementasi lebih lanjut,
-            // seperti menghapus semua data user yang ada di Supabase, lalu memasukkan data backup satu per satu.
-            // Hal ini perlu penanganan ID yang cermat untuk menghindari duplikasi atau konflik.
+          readJSONFile(file, async (importedData) => {
             console.warn("Fungsi 'Restore' saat ini hanya memuat data ke memori lokal. Untuk sinkronisasi ke Supabase, diperlukan implementasi lebih lanjut.");
 
-            // Mengganti data lokal di transactionManager
             transactionManager.transactions = importedData;
 
-            // Memperbarui UI dengan data yang dimuat dari file
             await renderTransactions();
             await updateSummary();
             await updateCharts();
@@ -184,12 +172,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
   }
 
   if (confirmResetBtn) {
-    confirmResetBtn.addEventListener('click', async () => { // Tambahkan async
+    confirmResetBtn.addEventListener('click', async () => {
       const password = resetPasswordInput.value;
       if (password === "hansohe") {
-        if (confirm('Apakah yakin ingin mereset semua transaksi?')) { // Menggunakan confirm bawaan browser untuk contoh
-          await transactionManager.resetAll(); // Gunakan await
-          await transactionManager.loadTransactions(); // Muat ulang data setelah reset
+        if (confirm('Apakah yakin ingin mereset semua transaksi?')) {
+          await transactionManager.resetAll();
+          await transactionManager.loadTransactions();
           await renderTransactions();
           await updateSummary();
           await updateCharts();
@@ -215,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Tambahkan async d
 });
 
 // Fungsi untuk merender daftar transaksi
-async function renderTransactions(keyword = '') { // Tambahkan async
+async function renderTransactions(keyword = '') {
   const list = document.getElementById('transaction-list');
   if (!list) return;
 
@@ -247,9 +235,9 @@ async function renderTransactions(keyword = '') { // Tambahkan async
   });
 
   document.querySelectorAll('button[data-id]').forEach(btn => {
-    btn.addEventListener('click', async () => { // Tambahkan async
-      await transactionManager.deleteTransaction(btn.dataset.id); // Gunakan await
-      await transactionManager.loadTransactions(); // Muat ulang data setelah menghapus
+    btn.addEventListener('click', async () => {
+      await transactionManager.deleteTransaction(btn.dataset.id);
+      await transactionManager.loadTransactions();
       await renderTransactions(keyword);
       await updateSummary();
       await updateCharts();
@@ -258,7 +246,7 @@ async function renderTransactions(keyword = '') { // Tambahkan async
 }
 
 // Fungsi untuk memperbarui ringkasan (income, expense, balance)
-async function updateSummary() { // Tambahkan async
+async function updateSummary() {
   const { income, expense, balance } = transactionManager.getSummary();
   const incomeEl = document.getElementById('income');
   const expenseEl = document.getElementById('expense');
@@ -270,7 +258,7 @@ async function updateSummary() { // Tambahkan async
 }
 
 // Fungsi untuk memperbarui semua grafik
-async function updateCharts() { // Tambahkan async
+async function updateCharts() {
   const monthlyData = transactionManager.getMonthlySummary();
   chartManager.renderBarChart(monthlyData);
 
