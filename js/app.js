@@ -1,5 +1,5 @@
 import TransactionManager from 'js/transactionManager.js';
-import ChartManager from './chartManager.js';
+import ChartManager from 'js/chartManager.js';
 import { formatRupiah } from './utils.js';
 
 const transactionManager = new TransactionManager();
