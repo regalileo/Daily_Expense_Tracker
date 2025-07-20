@@ -1,77 +1,111 @@
-// app.js
-
-import TransactionManager from './transactionManager.js';
-import ChartManager from './chartManager.js';
 import { formatCurrency, formatDate } from './utils.js';
+import { ChartManager } from './chartManager.js';
+import { TransactionManager } from './transactionManager.js';
 
-const transactionManager = new TransactionManager();
-const chartManager = new ChartManager();
+document.addEventListener("DOMContentLoaded", () => {
+  const addTransactionBtn = document.getElementById("add-transaction-btn");
+  const transactionFormSection = document.getElementById("form-section");
+  const transactionForm = document.getElementById("transaction-form");
+  const transactionList = document.getElementById("transaction-list");
+  const balanceEl = document.getElementById("balance");
+  const incomeEl = document.getElementById("income");
+  const expenseEl = document.getElementById("expense");
+  const totalTransactionsEl = document.getElementById("total-transactions");
+  const resetBtn = document.getElementById("reset");
+  const passwordModal = document.getElementById("password-modal");
+  const confirmResetBtn = document.getElementById("confirm-reset");
+  const resetPasswordInput = document.getElementById("reset-password");
+  const searchInput = document.getElementById("search");
 
-const form = document.getElementById('transactionForm');
-const descriptionInput = document.getElementById('description');
-const amountInput = document.getElementById('amount');
-const categoryInput = document.getElementById('category');
-const typeInput = document.getElementById('type');
-const transactionList = document.getElementById('transactionList');
-const balanceDisplay = document.getElementById('balance');
-const recentUpdates = document.getElementById('recentUpdates');
-const resetButton = document.getElementById('resetBtn');
+  const transactionManager = new TransactionManager();
+  const chartManager = new ChartManager();
 
-function updateUI() {
-  const transactions = transactionManager.getTransactions();
-  const balance = transactionManager.getBalance();
-  const monthlyData = transactionManager.getMonthlyData();
-  const categoryData = transactionManager.getCategoryData();
-  const yearlyData = transactionManager.getYearlyData();
+  function renderTransactions(transactions) {
+    transactionList.innerHTML = "";
+    if (transactions.length === 0) {
+      transactionList.innerHTML = `<tr><td colspan="4">Belum ada transaksi</td></tr>`;
+      return;
+    }
 
-  // Tampilkan saldo
-  balanceDisplay.textContent = formatCurrency(balance);
-
-  // Tampilkan 10 transaksi terakhir di recentUpdates
-  if (recentUpdates) {
-    recentUpdates.innerHTML = '';
-    const recent = transactions.slice(-10).reverse();
-    recent.forEach(tx => {
-      const item = document.createElement('li');
-      item.textContent = `${formatDate(tx.date)} - ${tx.description} (${tx.category}): ${formatCurrency(tx.amount)}`;
-      recentUpdates.appendChild(item);
+    transactions.forEach((t, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${t.title}</td>
+        <td>${t.category}</td>
+        <td class="${t.type}">${formatCurrency(t.amount)}</td>
+        <td><button data-index="${index}" class="delete-btn">🗑</button></td>
+      `;
+      transactionList.appendChild(tr);
     });
   }
 
-  // Tampilkan grafik
-  chartManager.renderBarChart(monthlyData); // Reset tiap bulan
-  chartManager.renderYearlyChart(yearlyData); // Rekap bulanan selama 1 tahun
-  chartManager.renderPieChart(categoryData);
-}
+  function updateSummary() {
+    const { balance, income, expense, totalTransactions } = transactionManager.getSummary();
+    balanceEl.textContent = formatCurrency(balance);
+    incomeEl.textContent = formatCurrency(income);
+    expenseEl.textContent = formatCurrency(expense);
+    totalTransactionsEl.textContent = totalTransactions;
+  }
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const description = descriptionInput.value;
-  const amount = parseFloat(amountInput.value);
-  const category = categoryInput.value;
-  const type = typeInput.value;
+  function refreshUI() {
+    const filtered = transactionManager.filterTransactions(searchInput.value);
+    renderTransactions(filtered);
+    updateSummary();
+    chartManager.renderCharts(transactionManager.transactions);
+  }
 
-  if (description && !isNaN(amount) && category && type) {
-    transactionManager.addTransaction({
-      description,
-      amount: type === 'expense' ? -amount : amount,
-      category,
+  addTransactionBtn.addEventListener("click", () => {
+    transactionFormSection.classList.toggle("hidden");
+  });
+
+  transactionForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = new FormData(transactionForm);
+    const newTransaction = {
+      title: data.get("title"),
+      amount: parseFloat(data.get("amount")),
+      category: data.get("category"),
+      type: data.get("type"),
       date: new Date().toISOString()
-    });
-    form.reset();
-    updateUI();
-  }
-});
+    };
+    transactionManager.addTransaction(newTransaction);
+    transactionForm.reset();
+    transactionFormSection.classList.add("hidden");
+    refreshUI();
+  });
 
-resetButton.addEventListener('click', () => {
-  const password = prompt('Masukkan password untuk mereset data:');
-  if (password === 'hansohe') {
-    transactionManager.resetTransactions();
-    updateUI();
-    alert('Data berhasil direset.');
-  } else {
-    alert('Password salah!');
-  }
-});
+  transactionList.addEventListener("click", (e) => {
+    if (e.target.classList.contains("delete-btn")) {
+      const index = e.target.dataset.index;
+      transactionManager.deleteTransaction(index);
+      refreshUI();
+    }
+  });
 
-document.addEventListener('DOMContentLoaded', updateUI);
+  searchInput.addEventListener("input", refreshUI);
+
+  resetBtn.addEventListener("click", () => {
+    passwordModal.classList.remove("hidden");
+  });
+
+  confirmResetBtn.addEventListener("click", () => {
+    const password = resetPasswordInput.value;
+    if (password === "hansohe") {
+      transactionManager.resetTransactions();
+      passwordModal.classList.add("hidden");
+      resetPasswordInput.value = "";
+      refreshUI();
+    } else {
+      alert("Password salah!");
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target === passwordModal) {
+      passwordModal.classList.add("hidden");
+    }
+  });
+
+  // Init UI
+  refreshUI();
+});
