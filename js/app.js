@@ -92,3 +92,22 @@ function updateCharts() {
   chartManager.renderBarChart(data);
   chartManager.renderPieChart(data);
 }
+
+// Navigasi Sidebar
+document.querySelectorAll('.menu-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const targetId = link.dataset.target;
+
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.add('hidden');
+    });
+
+    document.querySelectorAll('.menu-link').forEach(link => {
+      link.classList.remove('active');
+    });
+
+    document.getElementById(targetId).classList.remove('hidden');
+    link.classList.add('active');
+  });
+});
