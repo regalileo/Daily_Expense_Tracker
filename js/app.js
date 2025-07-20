@@ -44,17 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const resetBtn = document.getElementById('reset');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
+ const resetBtn = document.getElementById('reset');
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    const password = prompt("Masukkan password untuk mereset data:");
+    if (password === "hansohe") {
       if (confirm('Apakah yakin ingin mereset semua transaksi?')) {
         transactionManager.resetAll();
         renderTransactions();
         updateSummary();
         updateCharts();
       }
-    });
-  }
+    } else {
+      alert("Password salah. Reset dibatalkan.");
+    }
+  });
+}
+
 
   document.querySelectorAll('.menu-link').forEach(link => {
     link.addEventListener('click', e => {
