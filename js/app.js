@@ -15,22 +15,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit transaksi baru
   const form = document.getElementById('form-transaction');
-  if (form) {
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const newTransaction = {
-        title: form.title.value,
-        amount: parseInt(form.amount.value),
-        category: form.category.value,
-        type: form.type.value
-      };
-      transactionManager.addTransaction(newTransaction);
-      form.reset();
-      renderTransactions();
-      updateSummary();
-      updateCharts();
-    });
-  }
+if (form) {
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const title = form.title.value.trim();
+    const amount = parseInt(form.amount.value);
+    const category = form.category.value;
+    const type = form.type.value;
+
+    if (!title || isNaN(amount) || !category || !type) {
+      alert("Harap isi semua kolom dengan benar!");
+      return;
+    }
+
+    const newTransaction = { title, amount, category, type };
+    transactionManager.addTransaction(newTransaction);
+
+    form.reset();
+    renderTransactions();
+    updateSummary();
+    updateCharts();
+  });
+}
+
 
   // Pencarian
   const searchInput = document.getElementById('search');
