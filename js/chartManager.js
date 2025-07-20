@@ -2,13 +2,14 @@ export default class ChartManager {
   constructor() {
     this.barChart = null;
     this.pieChart = null;
+    this.yearlyChart = null;
   }
 
   renderBarChart(data) {
     const ctx = document.getElementById('barChart').getContext('2d');
     if (this.barChart) this.barChart.destroy();
 
-    const months = Object.keys(data);
+    const months = Object.keys(data).slice(-1); // Hanya bulan ini
     const incomes = months.map(month => data[month].income || 0);
     const expenses = months.map(month => data[month].expense || 0);
     const balances = months.map((month, i) => (incomes[i] - expenses[i]));
@@ -43,7 +44,58 @@ export default class ChartManager {
           },
           title: {
             display: true,
-            text: 'Monthly Income, Expense, and Balance'
+            text: 'This Month: Income, Expense, and Balance'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  renderYearlyChart(data) {
+    const ctx = document.getElementById('yearlyChart').getContext('2d');
+    if (this.yearlyChart) this.yearlyChart.destroy();
+
+    const months = Object.keys(data).slice(-12); // 12 bulan terakhir
+    const incomes = months.map(month => data[month].income || 0);
+    const expenses = months.map(month => data[month].expense || 0);
+    const balances = months.map((month, i) => (incomes[i] - expenses[i]));
+
+    this.yearlyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [
+          {
+            label: 'Income',
+            data: incomes,
+            backgroundColor: '#4caf50'
+          },
+          {
+            label: 'Expense',
+            data: expenses,
+            backgroundColor: '#f44336'
+          },
+          {
+            label: 'Balance',
+            data: balances,
+            backgroundColor: '#2196f3'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Yearly Recap: Income, Expense, and Balance'
           }
         },
         scales: {
