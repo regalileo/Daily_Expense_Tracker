@@ -1,4 +1,4 @@
-import { formatRupiah, saveToStorage, loadFromStorage } from './utils.js';
+import { formatCurrency, saveToStorage, loadFromStorage } from './utils.js';
 
 export default class TransactionManager {
   constructor(storageKey = 'transactions') {
