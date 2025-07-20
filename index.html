@@ -1,98 +1,150 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Daily Expense</title>
+  <title>Daily Expense Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <img src="avatar.png" alt="User Avatar" class="avatar" />
-    <div class="username">User</div>
+  <div class="sidebar">
+    <div class="user-profile">
+      <img src="assets/profil.jpg" alt="Avatar" class="avatar"/>
+      <p class="username">Regal Nugraha</p>
+    </div>
     <nav class="menu">
-      <a href="#" class="active">Dashboard</a>
-      <a href="#" id="reset-data">Reset Data</a>
+      <a href="#" class="menu-link active" data-target="home">🏠 Home</a>
+      <a href="#" class="menu-link" data-target="expenses">💰 Expenses</a>
+      <a href="#" class="menu-link" data-target="reports">📊 Reports</a>
+      <a href="#" class="menu-link" data-target="settings">⚙️ Settings</a>
+      <a href="#" class="menu-link" data-target="support">📞 Support</a>
     </nav>
-  </aside>
+  </div>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <header>
-      <h1>Daily Expense Tracker</h1>
-    </header>
+    <!-- Halaman HOME -->
+    <section id="home" class="page">
+      <header>
+        <h1>Expense Dashboard</h1>
+      </header>
 
-    <!-- Summary -->
-    <section class="summary">
-      <div class="summary-box">
-        <h3>Income</h3>
-        <p id="income-summary">Rp0</p>
-      </div>
-      <div class="summary-box">
-        <h3>Expense</h3>
-        <p id="expense-summary">Rp0</p>
-      </div>
-      <div class="summary-box">
-        <h3>Balance</h3>
-        <p id="balance-summary">Rp0</p>
-      </div>
+      <section class="summary">
+        <div class="summary-box">
+          <h3>Current Balance</h3>
+          <p id="balance">Rp0</p>
+        </div>
+        <div class="summary-box">
+          <h3>Total Income</h3>
+          <p id="income">Rp0</p>
+        </div>
+        <div class="summary-box">
+          <h3>Total Expenses</h3>
+          <p id="expense">Rp0</p>
+        </div>
+        <div class="summary-box">
+          <h3>Total Transactions</h3>
+          <p id="total-transactions">0</p>
+        </div>
+      </section>
+
+      <section class="quick-actions">
+        <button id="add-transaction-btn">➕ New Transaction</button>
+        <button id="export-btn">📤 Backup</button>
+        <button id="import-btn">📥 Restore</button>
+        <button id="reset">♻️ Reset</button>
+      </section>
+
+      <section class="form-section hidden" id="form-section">
+        <h2>Add New Transaction</h2>
+        <form id="transaction-form">
+          <input type="text" name="title" placeholder="Description" required />
+          <input type="number" name="amount" placeholder="Amount" required />
+          <select name="category" required>
+            <option value="" disabled selected>Select category</option>
+            <option value="Makanan">🍔 Makanan</option>
+            <option value="Transportasi">🚗 Transportasi</option>
+            <option value="Hiburan">🎮 Hiburan</option>
+            <option value="Tagihan">🧾 Tagihan</option>
+            <option value="Pakaian">👗 Pakaian</option>
+            <option value="Lainnya">📦 Lainnya</option>
+          </select>
+          <select name="type" required>
+            <option value="" disabled selected>Select type</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+          </select>
+          <button type="submit">💾 Save</button>
+        </form>
+      </section>
+
+      <section class="transactions-section">
+        <h2>Recent Transactions</h2>
+        <input type="text" id="search" placeholder="🔍 Search transaction..." />
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="transaction-list">
+            <tr><td colspan="4">Belum ada transaksi</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="chart-section">
+        <h2>Charts</h2>
+        <div class="charts-wrapper">
+          <div class="chart-box">
+            <h4>Monthly Income vs Expense</h4>
+            <canvas id="barChart" height="200"></canvas>
+          </div>
+          <div class="chart-box">
+            <h4>Category Breakdown</h4>
+            <canvas id="pieChart" height="200"></canvas>
+          </div>
+        </div>
+      </section>
     </section>
 
-    <!-- Quick Actions -->
-    <section class="quick-actions">
-      <button id="backup-data">Backup</button>
-      <button id="restore-data">Restore</button>
+    <!-- Halaman Expenses -->
+    <section id="expenses" class="page hidden">
+      <h2>📄 Halaman Expenses</h2>
+      <p>Belum ada konten khusus untuk halaman ini.</p>
     </section>
 
-    <!-- Form -->
-    <section class="form-section">
-      <form id="form-transaction">
-        <input type="text" name="title" placeholder="Judul" required />
-        <input type="number" name="amount" placeholder="Jumlah (Rp)" required />
-        <select name="category" required>
-          <option value="" disabled selected>Kategori</option>
-          <option value="Makanan">Makanan</option>
-          <option value="Transportasi">Transportasi</option>
-          <option value="Pakaian">Pakaian</option>
-          <option value="Hiburan">Hiburan</option>
-          <option value="Lainnya">Lainnya</option>
-        </select>
-        <select name="type" required>
-          <option value="income">Pemasukan</option>
-          <option value="expense">Pengeluaran</option>
-        </select>
-        <button type="submit">Simpan</button>
-      </form>
+    <!-- Halaman Reports -->
+    <section id="reports" class="page hidden">
+      <h2>📊 Halaman Laporan</h2>
+      <p>Statistik dan laporan akan ditampilkan di sini.</p>
     </section>
 
-    <!-- Transactions -->
-    <section class="transactions-section">
-      <input type="text" id="search" placeholder="Cari transaksi..." />
-      <ul id="transaction-list">
-        <!-- Transaction items will be rendered here -->
-      </ul>
+    <!-- Halaman Settings -->
+    <section id="settings" class="page hidden">
+      <h2>⚙️ Pengaturan</h2>
+      <p>Fitur pengaturan aplikasi akan dikembangkan di sini.</p>
     </section>
 
-    <!-- Chart -->
-    <section class="chart-section">
-      <canvas id="monthly-chart" height="100"></canvas>
+    <!-- Halaman Support -->
+    <section id="support" class="page hidden">
+      <h2>📞 Dukungan</h2>
+      <p>Hubungi kami untuk bantuan.</p>
     </section>
   </main>
 
-  <!-- Modal Restore -->
-  <div class="modal hidden" id="modal-restore">
+  <div id="password-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>Upload file JSON</h3>
-      <input type="file" id="file-restore" accept=".json" />
+      <h3>Enter Password to Reset</h3>
+      <input type="password" id="reset-password" placeholder="Password..." />
+      <button id="confirm-reset">✅ Confirm</button>
     </div>
   </div>
-
-  <!-- Scripts -->
-  <script type="module" src="./js/utils.js"></script>
-  <script type="module" src="./js/transactionManager.js"></script>
-  <script type="module" src="./js/chartManager.js"></script>
-  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
