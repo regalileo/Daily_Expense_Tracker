@@ -1,45 +1,69 @@
-import { formatRupiah } from './utils.js';
+import { formatRupiah, saveToStorage, getFromStorage } from "./utils.js";
 
 export class TransactionManager {
-    constructor(storageKey = 'transactions') {
-    this.storageKey = storageKey;
-    this.transactions = JSON.parse(localStorage.getItem(this.storageKey)) || [];
-}
+  constructor() {
+    this.transactions = getFromStorage("transactions", []);
+  }
 
-add(tx) {
-    this.transactions.push(tx);
+  addTransaction(data) {
+    this.transactions.push({ ...data, id: Date.now() });
     this.save();
-}
+  }
 
-delete(index) {
-    this.transactions.splice(index, 1);
+  deleteTransaction(id) {
+    this.transactions = this.transactions.filter(t => t.id !== id);
     this.save();
-}
+  }
 
-filter({ start, end, category }) {
-    return this.transactions.filter(tx => {
-        const date = new Date(tx.date);
-        if (start && date < new Date(start)) return false;
-        if (end && date > new Date(end)) return false;
-        if (category && tx.category !== category) return false;
-        return true;
+  editTransaction(id, newData) {
+    this.transactions = this.transactions.map(t => t.id === id ? { ...t, ...newData } : t);
+    this.save();
+  }
+
+  filterTransactions(keyword) {
+    return this.transactions.filter(t => t.description.toLowerCase().includes(keyword.toLowerCase()));
+  }
+
+  save() {
+    saveToStorage("transactions", this.transactions);
+  }
+
+  getTodayTotal() {
+    const today = new Date().toISOString().slice(0, 10);
+    return this.transactions
+      .filter(t => t.date === today)
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  }
+
+  getMonthTotal() {
+    const month = new Date().toISOString().slice(0, 7);
+    return this.transactions
+      .filter(t => t.date.startsWith(month))
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  }
+
+  getBalance(initial) {
+    return initial - this.transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  }
+
+  getCategoryStats() {
+    const result = {};
+    this.transactions.forEach(t => {
+      result[t.category] = (result[t.category] || 0) + parseFloat(t.amount);
     });
-}
+    return result;
+  }
 
-getTotal(filtered = this.transactions) {
-    return filtered.reduce((sum, tx) => sum + Number(tx.amount), 0);
-}
-
-getStats(filtered = this.transactions) {
-    const stats = {};
-    filtered.forEach(tx => {
-        if (!stats[tx.category]) stats[tx.category] = 0;
-        stats[tx.category] += Number(tx.amount);
+  getDateStats() {
+    const result = {};
+    this.transactions.forEach(t => {
+      result[t.date] = (result[t.date] || 0) + parseFloat(t.amount);
     });
-    return stats;
-}
+    return result;
+  }
 
-save() {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.transactions));
-}
+  resetAll() {
+    this.transactions = [];
+    this.save();
+  }
 }
