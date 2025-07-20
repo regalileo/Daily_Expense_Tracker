@@ -1,47 +1,41 @@
 import TransactionManager from './transactionManager.js';
-import { updateCharts } from './chartManager.js';
+import ChartManager from './chartManager.js';
 import { formatRupiah } from './utils.js';
 
 const transactionManager = new TransactionManager();
-const chartManager = new ChartManager(
-  document.getElementById('barChart'),
-  document.getElementById('pieChart')
-);
+let chartManager;
 
 document.addEventListener('DOMContentLoaded', () => {
+  chartManager = new ChartManager(document.getElementById('barChart'));
+
   renderTransactions();
   updateSummary();
   updateCharts();
 
-  // Submit transaksi baru
   const form = document.getElementById('transaction-form');
-if (form) {
-  form.addEventListener('submit', e => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
 
-    const title = form.title.value.trim();
-    const amount = parseInt(form.amount.value);
-    const category = form.category.value;
-    const type = form.type.value;
+      const title = form.title.value.trim();
+      const amount = parseInt(form.amount.value);
+      const category = form.category.value;
+      const type = form.type.value;
 
-    if (!title || isNaN(amount) || !category || !type) {
-      alert("Harap isi semua kolom dengan benar!");
-      return;
-    }
+      if (!title || isNaN(amount) || !category || !type) {
+        alert("Harap isi semua kolom dengan benar!");
+        return;
+      }
 
-    const newTransaction = { title, amount, category, type };
-    transactionManager.addTransaction(newTransaction);
-    console.log(transactionManager.getTransactions());
-    
-    form.reset();
-    renderTransactions();
-    updateSummary();
-    updateCharts();
-  });
-}
+      const newTransaction = { title, amount, category, type };
+      transactionManager.addTransaction(newTransaction);
+      form.reset();
+      renderTransactions();
+      updateSummary();
+      updateCharts();
+    });
+  }
 
-
-  // Pencarian
   const searchInput = document.getElementById('search');
   if (searchInput) {
     searchInput.addEventListener('input', e => {
@@ -50,7 +44,6 @@ if (form) {
     });
   }
 
-  // Reset data
   const resetBtn = document.getElementById('reset');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
@@ -63,7 +56,6 @@ if (form) {
     });
   }
 
-  // Navigasi sidebar
   document.querySelectorAll('.menu-link').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -86,7 +78,6 @@ if (form) {
     });
   });
 
-  // Toggle form transaksi
   const addTransactionBtn = document.getElementById('add-transaction-btn');
   const formSection = document.getElementById('form-section');
   if (addTransactionBtn && formSection) {
@@ -146,7 +137,6 @@ function updateSummary() {
 }
 
 function updateCharts() {
-  const data = transactionManager.getDataGroupedByCategory();
-  chartManager.renderBarChart(data);
-  chartManager.renderPieChart(data);
+  const monthlyData = transactionManager.getMonthlySummary();
+  chartManager.renderBarChart(monthlyData);
 }
