@@ -1,9 +1,9 @@
-import { transactionManager } from './transactionManager.js';
+import { TransactionManager } from './transactionManager.js';
 
 let barChart = null;
 
 export function updateCharts() {
-  const monthlyData = transactionManager.getMonthlySummary();
+  const monthlyData = TransactionManager.getMonthlySummary();
 
   const labels = Object.keys(monthlyData).sort(); // contoh: ['2025-06', '2025-07']
   const incomeData = labels.map(month => monthlyData[month].income);
