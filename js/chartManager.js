@@ -2,8 +2,11 @@ import TransactionManager from './transactionManager.js';
 
 let barChart = null;
 
+// Buat instance dari TransactionManager
+const transactionManager = new TransactionManager();
+
 export function updateCharts() {
-  const monthlyData = TransactionManager.getMonthlySummary();
+  const monthlyData = transactionManager.getMonthlySummary();
 
   const labels = Object.keys(monthlyData).sort(); // contoh: ['2025-06', '2025-07']
   const incomeData = labels.map(month => monthlyData[month].income);
