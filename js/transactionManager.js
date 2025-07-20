@@ -1,11 +1,11 @@
-import { createClient } from 'https://qfefytzsknodsqbvfwxt.supabase.co';
-import { formatCurrency } from './utils.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { formatCurrency } from './utils.js'; 
 
 export default class TransactionManager {
   constructor(supabaseUrl, supabaseAnonKey, userId) {
     this.supabase = createClient(supabaseUrl, supabaseAnonKey);
     this.userId = userId;
-    this.transactions = []; // Data akan dimuat dari Supabase, 
+    this.transactions = []; // Data akan dimuat dari Supabase
   }
 
   // Memuat transaksi dari Supabase
@@ -94,6 +94,11 @@ export default class TransactionManager {
       console.error("Error resetting all transactions in Supabase:", error.message);
     }
   }
+
+  // Metode save() tidak lagi diperlukan karena operasi langsung ke Supabase
+  // save() {
+  //   saveToStorage(this.storageKey, this.transactions);
+  // }
 
   getTransactions() {
     return this.transactions; // Mengembalikan data yang ada di memori lokal
