@@ -1,5 +1,6 @@
 import TransactionManager from './transactionManager.js';
 import ChartManager from './chartManager.js';
+import ExpensePageManager from './expensePageManager.js';
 import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -9,6 +10,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let supabase;
 let transactionManager;
 let chartManager;
+let expensePageManager; 
 let currentUserId = null; // Untuk menyimpan ID pengguna yang sedang login
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -28,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Jika inisialisasi gagal di sini, hentikan eksekusi lebih lanjut
     return;
   }
-
 
   // Otentikasi Anonim (untuk contoh sederhana)
   try {
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Event listener untuk navigasi sidebar
   document.querySelectorAll('.menu-link').forEach(link => {
-    link.addEventListener('click', e => {
+    link.addEventListener('click', async e => { // Tambahkan async
       e.preventDefault();
       const targetId = link.dataset.target;
 
@@ -153,6 +154,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       link.classList.add('active');
+
+      // Panggil renderExpensesPage() saat halaman "Expenses" diaktifkan
+      if (targetId === 'expenses') {
+        await transactionManager.loadTransactions(); // Pastikan data terbaru dimuat
+        expensePageManager.renderExpensesPage();
+      }
+      // Untuk halaman home, pastikan juga di-render ulang jika perlu
+      if (targetId === 'home') {
+        await transactionManager.loadTransactions(); // Pastikan data terbaru dimuat
+        await renderTransactions();
+        await updateSummary();
+        await updateCharts();
+      }
     });
   });
 
@@ -194,6 +208,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           await renderTransactions();
           await updateSummary();
           await updateCharts();
+          // Juga perbarui halaman expenses jika sedang aktif setelah reset
+          if (!document.getElementById('expenses').classList.contains('hidden')) {
+            expensePageManager.renderExpensesPage();
+          }
           hidePasswordModal();
           console.log("Data berhasil direset!");
         } else {
@@ -213,9 +231,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+
+  // Event listener global untuk memicu pembaruan UI setelah operasi CRUD dari halaman Expenses
+  document.addEventListener('transactionUpdated', async () => {
+    await transactionManager.loadTransactions(); // Muat ulang data utama
+    await renderTransactions(); // Perbarui halaman Home
+    await updateSummary(); // Perbarui ringkasan Home
+    await updateCharts(); // Perbarui grafik Home
+  });
 });
 
-// Fungsi untuk merender daftar transaksi
+// Fungsi untuk merender daftar transaksi (Home Page)
 async function renderTransactions(keyword = '') {
   const list = document.getElementById('transaction-list');
   if (!list) return;
@@ -254,11 +280,15 @@ async function renderTransactions(keyword = '') {
       await renderTransactions(keyword);
       await updateSummary();
       await updateCharts();
+      // Juga perbarui halaman expenses jika sedang aktif setelah menghapus dari home
+      if (!document.getElementById('expenses').classList.contains('hidden')) {
+        expensePageManager.renderExpensesPage();
+      }
     });
   });
 }
 
-// Fungsi untuk memperbarui ringkasan (income, expense, balance)
+// Fungsi untuk memperbarui ringkasan (Home Page)
 async function updateSummary() {
   const { income, expense, balance } = transactionManager.getSummary();
   const incomeEl = document.getElementById('income');
@@ -270,13 +300,13 @@ async function updateSummary() {
   if (balanceEl) balanceEl.textContent = formatCurrency(balance);
 }
 
-// Fungsi untuk memperbarui semua grafik
+// Fungsi untuk memperbarui semua grafik (Home Page)
 async function updateCharts() {
   const monthlyData = transactionManager.getMonthlySummary();
   chartManager.renderBarChart(monthlyData);
 
   const categoryData = transactionManager.getDataGroupedByCategory();
-  chartManager.renderPieChart(categoryData);
+  chartManager.renderPieChart(categoryData, 'pieChart', 'Expenses by Category'); // Pastikan ID canvas benar
 
   chartManager.renderYearlyChart(monthlyData);
 }
