@@ -1,4 +1,4 @@
-import { formatRupiah } from './utils.js';
+import { formatRupiah } from 'js/utils.js';
 
 export default class ChartManager {
   constructor(ctxBar, ctxPie) {
