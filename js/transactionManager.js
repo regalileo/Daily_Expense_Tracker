@@ -1,9 +1,9 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { formatCurrency } from './utils.js'; 
 
 export default class TransactionManager {
-  constructor(supabaseUrl, supabaseAnonKey, userId) {
-    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Konstruktor sekarang menerima instance supabaseClient yang sudah diinisialisasi dan userId
+  constructor(supabaseClient, userId) {
+    this.supabase = supabaseClient; // Gunakan instance Supabase yang dilewatkan
     this.userId = userId;
     this.transactions = []; // Data akan dimuat dari Supabase
   }
