@@ -113,6 +113,5 @@ document.querySelectorAll('.menu-link').forEach(link => {
 });
 
 document.getElementById('add-transaction-btn').addEventListener('click', () => {
-  const formSection = document.getElementById('form-section');
-  formSection.classList.toggle('hidden');
+  document.getElementById('form-section').classList.toggle('hidden');
 });
