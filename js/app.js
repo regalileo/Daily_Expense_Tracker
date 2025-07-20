@@ -31,7 +31,8 @@ if (form) {
 
     const newTransaction = { title, amount, category, type };
     transactionManager.addTransaction(newTransaction);
-
+    console.log(transactionManager.getTransactions());
+    
     form.reset();
     renderTransactions();
     updateSummary();
