@@ -105,7 +105,7 @@
       </section>
     </section>
 
-    <!-- BAGIAN BARU UNTUK HALAMAN EXPENSES -->
+    <!-- BAGIAN UNTUK HALAMAN EXPENSES -->
     <section id="expenses" class="page hidden">
       <header>
         <h2>💰 Detail Pengeluaran</h2>
@@ -113,27 +113,29 @@
 
       <section class="filter-controls form-section">
         <h3>Filter Pengeluaran</h3>
-        <div class="form-group">
-          <label for="expense-category-filter">Kategori:</label>
-          <select id="expense-category-filter">
-            <option value="">Semua Kategori</option>
-            <option value="Makanan">Makanan</option>
-            <option value="Transportasi">Transportasi</option>
-            <option value="Hiburan">Hiburan</option>
-            <option value="Tagihan">Tagihan</option>
-            <option value="Pakaian">Pakaian</option>
-            <option value="Lainnya">Lainnya</option>
-          </select>
+        <div class="filter-grid"> <!-- Tambahkan div ini untuk grid layout -->
+          <div class="form-group">
+            <label for="expense-category-filter">Kategori:</label>
+            <select id="expense-category-filter">
+              <option value="">Semua Kategori</option>
+              <option value="Makanan">Makanan</option>
+              <option value="Transportasi">Transportasi</option>
+              <option value="Hiburan">Hiburan</option>
+              <option value="Tagihan">Tagihan</option>
+              <option value="Pakaian">Pakaian</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="expense-start-date">Dari Tanggal:</label>
+            <input type="date" id="expense-start-date">
+          </div>
+          <div class="form-group">
+            <label for="expense-end-date">Sampai Tanggal:</label>
+            <input type="date" id="expense-end-date">
+          </div>
+          <button id="apply-expense-filters" class="full-width-btn">Terapkan Filter</button> <!-- Tambahkan class full-width-btn -->
         </div>
-        <div class="form-group">
-          <label for="expense-start-date">Dari Tanggal:</label>
-          <input type="date" id="expense-start-date">
-        </div>
-        <div class="form-group">
-          <label for="expense-end-date">Sampai Tanggal:</label>
-          <input type="date" id="expense-end-date">
-        </div>
-        <button id="apply-expense-filters">Terapkan Filter</button>
       </section>
 
       <section class="expense-summary summary">
@@ -197,7 +199,8 @@
     </div>
   </div>
 
+  <!-- Letakkan di akhir body agar DOM sudah siap -->
   <script type="module" src="./js/app.js"></script>
-  <script type="module" src="./js/expensePageManager.js"></script> 
+  <script type="module" src="./js/expensePageManager.js"></script>
 </body>
 </html>
