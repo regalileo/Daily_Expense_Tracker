@@ -22,10 +22,46 @@
       <a href="#" class="menu-link" data-target="settings">⚙ Settings</a>
       <a href="#" class="menu-link" data-target="support">📝 Support</a>
     </nav>
+    <button id="logout-btn" class="quick-action-btn logout-btn hidden">🚪 Logout</button> <!-- Tombol Logout -->
   </div>
 
   <main class="main-content">
-    <section id="home" class="page">
+    <!-- Halaman Login -->
+    <section id="login-page" class="page">
+      <div class="login-container">
+        <h2>Selamat Datang!</h2>
+        <p>Silakan masuk untuk melanjutkan.</p>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" placeholder="Masukkan email Anda" required />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" placeholder="Masukkan password Anda" required />
+          </div>
+          <button type="submit">Masuk</button>
+        </form>
+        <p class="register-text">Belum punya akun? <a href="#" id="show-register">Daftar di sini</a></p>
+        <form id="register-form" class="hidden">
+          <h3>Daftar Akun Baru</h3>
+          <div class="form-group">
+            <label for="register-email">Email:</label>
+            <input type="email" id="register-email" placeholder="Email Anda" required />
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password:</label>
+            <input type="password" id="register-password" placeholder="Password (min 6 karakter)" required />
+          </div>
+          <button type="submit">Daftar</button>
+          <p class="login-text">Sudah punya akun? <a href="#" id="show-login">Masuk</a></p>
+        </form>
+        <p id="auth-message" class="auth-message"></p>
+      </div>
+    </section>
+
+    <!-- Konten Aplikasi Utama (Dashboard, Expenses, Reports, dll.) -->
+    <section id="home" class="page hidden"> <!-- Default hidden -->
       <header>
         <h1>Expense Dashboard</h1>
       </header>
@@ -81,7 +117,7 @@
             </tr>
           </thead>
           <tbody id="transaction-list">
-            <tr><td colspan="4">Belum ada transaksi</td></tr>
+            <tr><td colspan="4" class="text-center">Belum ada transaksi</td></tr>
           </tbody>
         </table>
       </section>
@@ -105,7 +141,6 @@
       </section>
     </section>
 
-    <!-- BAGIAN UNTUK HALAMAN EXPENSES -->
     <section id="expenses" class="page hidden">
       <header>
         <h2>💰 Detail Pengeluaran</h2>
@@ -113,7 +148,7 @@
 
       <section class="filter-controls form-section">
         <h3>Filter Pengeluaran</h3>
-        <div class="filter-grid"> <!-- Tambahkan div ini untuk grid layout -->
+        <div class="filter-grid">
           <div class="form-group">
             <label for="expense-category-filter">Kategori:</label>
             <select id="expense-category-filter">
@@ -134,7 +169,7 @@
             <label for="expense-end-date">Sampai Tanggal:</label>
             <input type="date" id="expense-end-date">
           </div>
-          <button id="apply-expense-filters" class="full-width-btn">Terapkan Filter</button> <!-- Tambahkan class full-width-btn -->
+          <button id="apply-expense-filters" class="full-width-btn">Terapkan Filter</button>
         </div>
       </section>
 
@@ -173,7 +208,6 @@
         </div>
       </section>
     </section>
-    <!-- AKHIR BAGIAN BARU UNTUK HALAMAN EXPENSES -->
 
     <section id="reports" class="page hidden">
       <h2>📈 Halaman Laporan</h2>
@@ -199,7 +233,6 @@
     </div>
   </div>
 
-  <!-- Letakkan di akhir body agar DOM sudah siap -->
   <script type="module" src="./js/app.js"></script>
   <script type="module" src="./js/expensePageManager.js"></script>
 </body>
