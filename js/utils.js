@@ -1,12 +1,37 @@
-export const formatRupiah = (num) => {
-  return "Rp " + num.toLocaleString("id-ID");
-};
+export function formatRupiah(amount) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
 
-export const saveToStorage = (key, value) => {
-  localStorage.setItem(key, JSON.stringify(value));
-};
+export function saveToStorage(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
 
-export const getFromStorage = (key, defaultVal = null) => {
+export function loadFromStorage(key) {
   const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : defaultVal;
-};
+  return data ? JSON.parse(data) : null;
+}
+
+export function downloadJSON(data, filename = "backup.json") {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+export function readJSONFile(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const json = JSON.parse(event.target.result);
+      callback(json);
+    } catch (err) {
+      alert("File tidak valid!");
+    }
+  };
+  reader.readAsText(file);
+}
