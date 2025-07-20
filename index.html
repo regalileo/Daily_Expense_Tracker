@@ -37,6 +37,10 @@
           <p id="balance">Rp0</p>
         </div>
         <div class="summary-box">
+          <h3>Total Income</h3>
+          <p id="income">Rp0</p>
+        </div>
+        <div class="summary-box">
           <h3>Total Expenses</h3>
           <p id="expense">Rp0</p>
         </div>
@@ -50,15 +54,15 @@
         <button id="add-transaction-btn">➕ New Expense</button>
         <button id="export-btn">📤 Backup</button>
         <button id="import-btn">📥 Restore</button>
-        <button id="reset-btn">♻️ Reset</button>
+        <button id="reset">♻️ Reset</button> <!-- ID diperbaiki -->
       </section>
 
       <section class="form-section hidden" id="form-section">
         <h2>Add New Transaction</h2>
         <form id="transaction-form">
-          <input type="text" id="description" placeholder="Description" required />
-          <input type="number" id="amount" placeholder="Amount" required />
-          <select id="category" required>
+          <input type="text" name="title" placeholder="Description" required />
+          <input type="number" name="amount" placeholder="Amount" required />
+          <select name="category" required>
             <option value="" disabled selected>Select category</option>
             <option value="Makanan">🍔 Makanan</option>
             <option value="Transportasi">🚗 Transportasi</option>
@@ -67,7 +71,7 @@
             <option value="Pakaian">👗 Pakaian</option>
             <option value="Lainnya">📦 Lainnya</option>
           </select>
-          <select id="type" required>
+          <select name="type" required>
             <option value="" disabled selected>Select type</option>
             <option value="income">Pemasukan</option>
             <option value="expense">Pengeluaran</option>
