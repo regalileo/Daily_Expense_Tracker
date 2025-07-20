@@ -16,7 +16,7 @@ export default class TransactionManager {
   }
 
   deleteTransaction(id) {
-    this.transactions = this.transactions.filter(t => t.id !== id);
+    this.transactions = this.transactions.filter(t => t.id !== parseInt(id)); // Pastikan id adalah integer
     this.save();
   }
 
@@ -55,20 +55,19 @@ export default class TransactionManager {
     };
   }
 
+  // Memperbarui logika ini agar hanya menghitung pengeluaran per kategori untuk Pie Chart
   getDataGroupedByCategory() {
     const data = {};
     for (const t of this.transactions) {
-      if (!data[t.category]) data[t.category] = 0;
-      if (t.type === "income") {
+      // Hanya tambahkan pengeluaran ke dalam perhitungan kategori
+      if (t.type === "expense") {
+        if (!data[t.category]) data[t.category] = 0;
         data[t.category] += parseInt(t.amount);
-      } else {
-        data[t.category] -= parseInt(t.amount);
       }
     }
     return data;
   }
 
-  // ✅ Tambahan untuk grafik bulanan
   getMonthlySummary() {
     const summary = {};
 
