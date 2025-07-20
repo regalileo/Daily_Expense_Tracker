@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCharts();
 
   // Submit transaksi baru
-  const form = document.getElementById('form-transaction');
+  const form = document.getElementById('transaction-form');
 if (form) {
   form.addEventListener('submit', e => {
     e.preventDefault();
