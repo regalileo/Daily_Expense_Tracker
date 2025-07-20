@@ -1,4 +1,4 @@
-export function formatRupiah(amount) {
+export function formatCurrency(amount) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
