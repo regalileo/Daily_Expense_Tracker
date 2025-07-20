@@ -11,6 +11,7 @@ export default class ChartManager {
     const months = Object.keys(data);
     const incomes = months.map(month => data[month].income || 0);
     const expenses = months.map(month => data[month].expense || 0);
+    const balances = months.map((month, i) => (incomes[i] - expenses[i]));
 
     this.barChart = new Chart(ctx, {
       type: 'bar',
@@ -26,6 +27,11 @@ export default class ChartManager {
             label: 'Expense',
             data: expenses,
             backgroundColor: '#f44336'
+          },
+          {
+            label: 'Balance',
+            data: balances,
+            backgroundColor: '#2196f3'
           }
         ]
       },
@@ -37,7 +43,12 @@ export default class ChartManager {
           },
           title: {
             display: true,
-            text: 'Monthly Income vs Expense'
+            text: 'Monthly Income, Expense, and Balance'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
           }
         }
       }
@@ -55,18 +66,20 @@ export default class ChartManager {
       type: 'pie',
       data: {
         labels: categories,
-        datasets: [{
-          label: 'Category Breakdown',
-          data: values,
-          backgroundColor: [
-            '#ff6384',
-            '#36a2eb',
-            '#ffce56',
-            '#4caf50',
-            '#9c27b0',
-            '#ff9800'
-          ]
-        }]
+        datasets: [
+          {
+            label: 'Category Breakdown',
+            data: values,
+            backgroundColor: [
+              '#ff6384',
+              '#36a2eb',
+              '#ffce56',
+              '#4caf50',
+              '#9c27b0',
+              '#ff9800'
+            ]
+          }
+        ]
       },
       options: {
         responsive: true,
