@@ -1,11 +1,15 @@
 /* Global */
+html, body { /* Pastikan html dan body mengambil seluruh tinggi viewport */
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   background-color: #0e0e0e;
   color: #f0f0f0;
   display: flex;
-  min-height: 100vh; /* Pastikan body mengambil seluruh tinggi viewport */
+  min-height: 100vh;
 }
 
 h1, h2, h3 {
@@ -27,6 +31,7 @@ h1, h2, h3 {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0; /* Pastikan sidebar tidak menyusut */
 }
 
 .sidebar .user-profile {
@@ -92,23 +97,24 @@ h1, h2, h3 {
 /* Main Content Container */
 .main-content {
   flex: 1;
-  padding: 2rem;
-  display: flex;
+  position: relative; /* Penting: Jadikan parent untuk halaman yang di-absolute */
+  padding: 0; /* Hapus padding dari main-content, pindahkan ke .page */
+  display: flex; /* Tetap flex untuk mengisi ruang */
   flex-direction: column;
-  /* Hapus properti pemusatan dari sini untuk mencegah 'getaran' */
-  /* justify-content: center; */
-  /* align-items: center; */
-  /* Biarkan konten di dalamnya yang mengatur pemusatan */
+  overflow: hidden; /* Sembunyikan overflow jika ada konten yang keluar */
 }
 
 /* Styling untuk setiap halaman (page) */
 .page {
+  position: absolute; /* Penting: Ambil dari document flow */
+  top: 0;
+  left: 0;
   width: 100%;
-  flex-grow: 1; /* Izinkan halaman untuk mengisi ruang yang tersedia */
-  flex-shrink: 0; /* Cegah halaman menyusut di bawah kontennya */
-  /* Background color for pages to ensure consistent look */
-  background-color: #0e0e0e; /* Match body background */
-  padding-bottom: 2rem; /* Tambahkan padding bawah untuk konten */
+  height: 100%; /* Isi tinggi parent */
+  overflow-y: auto; /* Izinkan scroll jika konten lebih panjang dari tinggi halaman */
+  padding: 2rem; /* Pindahkan padding dari main-content ke sini */
+  box-sizing: border-box; /* Pastikan padding tidak menambah lebar/tinggi */
+  background-color: #0e0e0e; /* Pastikan latar belakang halaman konsisten */
 }
 
 
@@ -395,11 +401,11 @@ table td button:hover {
 /* Login Page Specific Styling */
 #login-page {
   display: flex;
-  flex-direction: column; /* Konten di dalamnya ditumpuk vertikal */
-  justify-content: center; /* Pusatkan konten secara vertikal dalam #login-page */
-  align-items: center; /* Pusatkan konten secara horizontal dalam #login-page */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  flex-grow: 1; /* Izinkan halaman login mengisi ruang yang tersedia */
+  height: 100%; /* Penting: Pastikan halaman login mengisi seluruh tinggi parent */
   background-color: #0e0e0e;
 }
 
@@ -412,7 +418,7 @@ table td button:hover {
   width: 100%;
   max-width: 400px;
   box-sizing: border-box;
-  margin: auto; /* Ini juga membantu pemusatan */
+  margin: auto;
 }
 
 .login-container h2 {
@@ -519,9 +525,14 @@ table td button:hover {
   }
 
   .main-content {
-    padding: 1rem;
+    padding: 0; /* Pastikan padding 0 di mobile juga */
     margin-top: 0;
     width: 100%;
+  }
+
+  .page {
+    position: absolute; /* Tetap absolute di mobile */
+    padding: 1rem; /* Sesuaikan padding untuk mobile */
   }
 
   .summary, .quick-actions, .form-section, .transactions-section, .chart-section {
