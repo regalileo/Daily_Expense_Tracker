@@ -4,60 +4,50 @@ import ExpensePageManager from './expensePageManager.js';
 import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
-
+// Konfigurasi Supabase 
+const SUPABASE_URL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 let supabase;
 let transactionManager;
 let chartManager;
-let expensePageManager; 
-let currentUserId = null; // Untuk menyimpan ID pengguna yang sedang login
+let expensePageManager;
+let currentUserId = null;
+
+// Referensi elemen UI otentikasi
+const loginPage = document.getElementById('login-page');
+const homePage = document.getElementById('home');
+const logoutBtn = document.getElementById('logout-btn');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const showRegisterLink = document.getElementById('show-register');
+const showLoginLink = document.getElementById('show-login');
+const authMessage = document.getElementById('auth-message');
+const usernameEl = document.querySelector('.username'); // Untuk menampilkan email user
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // --- DEBUGGING SUPABASE INITIALIZATION ---
-  console.log('Debugging Supabase Client Initialization:');
-  console.log('SUPABASE_URL value:', SUPABASE_URL);
-  console.log('SUPABASE_URL type:', typeof SUPABASE_URL);
-  console.log('SUPABASE_ANON_KEY value:', SUPABASE_ANON_KEY);
-  console.log('SUPABASE_ANON_KEY type:', typeof SUPABASE_ANON_KEY);
-  // --- END DEBUGGING ---
-
   // Inisialisasi Supabase Client HANYA DI SINI
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   } catch (initError) {
     console.error("Error initializing Supabase client:", initError);
-    // Jika inisialisasi gagal di sini, hentikan eksekusi lebih lanjut
     return;
   }
 
-  // Otentikasi Anonim (untuk contoh sederhana)
-  try {
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      console.error("Error signing in anonymously:", error.message);
-      return;
-    }
-    currentUserId = data.user.id;
-    console.log("Signed in anonymously with user ID:", currentUserId);
-  } catch (err) {
-    console.error("Failed to sign in anonymously:", err.message);
-    return;
-  }
+  // Event listener untuk perubahan status otentikasi
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state changed:', event, session);
+    handleAuthChange(session);
+  });
 
-  // Inisialisasi TransactionManager dengan instance Supabase yang sudah ada dan user ID
-  transactionManager = new TransactionManager(supabase, currentUserId);
+  // Cek status otentikasi awal
+  const { data: { session } } = await supabase.auth.getSession();
+  handleAuthChange(session);
+
 
   // Inisialisasi ChartManager
   chartManager = new ChartManager();
 
-  // Muat transaksi dari Supabase dan perbarui UI
-  await transactionManager.loadTransactions();
-  await renderTransactions();
-  await updateSummary();
-  await updateCharts();
-
-  // Event listener untuk form penambahan transaksi
+  // Event listener untuk form penambahan transaksi (hanya aktif setelah login)
   const form = document.getElementById('transaction-form');
   if (form) {
     form.addEventListener('submit', async e => {
@@ -75,14 +65,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const newTransaction = { title, amount, category, type };
       await transactionManager.addTransaction(newTransaction);
+      form.reset();
       await transactionManager.loadTransactions();
       await renderTransactions();
       await updateSummary();
       await updateCharts();
+      if (!document.getElementById('expenses').classList.contains('hidden')) {
+        expensePageManager.renderExpensesPage();
+      }
     });
   }
 
-  // Event listener untuk input pencarian
+  // Event listener untuk input pencarian (hanya aktif setelah login)
   const searchInput = document.getElementById('search');
   if (searchInput) {
     searchInput.addEventListener('input', async e => {
@@ -91,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Event listener untuk tombol reset
+  // Event listener untuk tombol reset (hanya aktif setelah login)
   const resetBtn = document.getElementById('reset');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
@@ -99,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Event listener untuk tombol backup (export)
+  // Event listener untuk tombol backup (export) (hanya aktif setelah login)
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
@@ -108,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Event listener untuk tombol restore (import)
+  // Event listener untuk tombol restore (import) (hanya aktif setelah login)
   const importBtn = document.getElementById('import-btn');
   if (importBtn) {
     importBtn.addEventListener('click', () => {
@@ -126,6 +120,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             await renderTransactions();
             await updateSummary();
             await updateCharts();
+            if (!document.getElementById('expenses').classList.contains('hidden')) {
+              expensePageManager.renderExpensesPage();
+            }
             console.log("Data berhasil dimuat dari file. Untuk sinkronisasi ke Supabase, perlu implementasi lebih lanjut.");
           });
         }
@@ -134,9 +131,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Event listener untuk navigasi sidebar
+  // Event listener untuk navigasi sidebar (hanya aktif setelah login)
   document.querySelectorAll('.menu-link').forEach(link => {
-    link.addEventListener('click', async e => { // Tambahkan async
+    link.addEventListener('click', async e => {
       e.preventDefault();
       const targetId = link.dataset.target;
 
@@ -155,14 +152,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       link.classList.add('active');
 
-      // Panggil renderExpensesPage() saat halaman "Expenses" diaktifkan
       if (targetId === 'expenses') {
-        await transactionManager.loadTransactions(); // Pastikan data terbaru dimuat
+        await transactionManager.loadTransactions();
         expensePageManager.renderExpensesPage();
       }
-      // Untuk halaman home, pastikan juga di-render ulang jika perlu
       if (targetId === 'home') {
-        await transactionManager.loadTransactions(); // Pastikan data terbaru dimuat
+        await transactionManager.loadTransactions();
         await renderTransactions();
         await updateSummary();
         await updateCharts();
@@ -170,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Event listener untuk tombol "New Transaction" (toggle form)
+  // Event listener untuk tombol "New Transaction" (toggle form) (hanya aktif setelah login)
   const addTransactionBtn = document.getElementById('add-transaction-btn');
   const formSection = document.getElementById('form-section');
   if (addTransactionBtn && formSection) {
@@ -208,7 +203,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           await renderTransactions();
           await updateSummary();
           await updateCharts();
-          // Juga perbarui halaman expenses jika sedang aktif setelah reset
           if (!document.getElementById('expenses').classList.contains('hidden')) {
             expensePageManager.renderExpensesPage();
           }
@@ -234,11 +228,140 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Event listener global untuk memicu pembaruan UI setelah operasi CRUD dari halaman Expenses
   document.addEventListener('transactionUpdated', async () => {
-    await transactionManager.loadTransactions(); // Muat ulang data utama
-    await renderTransactions(); // Perbarui halaman Home
-    await updateSummary(); // Perbarui ringkasan Home
-    await updateCharts(); // Perbarui grafik Home
+    await transactionManager.loadTransactions();
+    await renderTransactions();
+    await updateSummary();
+    await updateCharts();
   });
+
+  // --- Logika Otentikasi ---
+  // Tampilkan/sembunyikan form register
+  if (showRegisterLink) {
+    showRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.classList.add('hidden');
+      registerForm.classList.remove('hidden');
+      authMessage.textContent = '';
+    });
+  }
+
+  if (showLoginLink) {
+    showLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      authMessage.textContent = '';
+    });
+  }
+
+  // Handle Login Form Submission
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm['login-email'].value;
+      const password = loginForm['login-password'].value;
+      authMessage.textContent = 'Memproses...';
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        // handleAuthChange akan dipanggil oleh onAuthStateChange listener
+      } catch (error) {
+        authMessage.textContent = `Login Gagal: ${error.message}`;
+        console.error('Login error:', error.message);
+      }
+    });
+  }
+
+  // Handle Register Form Submission
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = registerForm['register-email'].value;
+      const password = registerForm['register-password'].value;
+      authMessage.textContent = 'Mendaftar...';
+
+      try {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        authMessage.textContent = 'Pendaftaran berhasil! Silakan masuk.';
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        loginForm['login-email'].value = email; // Isi email di form login
+        loginForm['login-password'].focus();
+      } catch (error) {
+        authMessage.textContent = `Pendaftaran Gagal: ${error.message}`;
+        console.error('Register error:', error.message);
+      }
+    });
+  }
+
+  // Handle Logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        // handleAuthChange akan dipanggil oleh onAuthStateChange listener
+      } catch (error) {
+        console.error('Logout error:', error.message);
+      }
+    });
+  }
+
+  // Fungsi untuk menangani perubahan status otentikasi
+  async function handleAuthChange(session) {
+    if (session) {
+      // Pengguna sudah login
+      currentUserId = session.user.id;
+      console.log('User logged in:', currentUserId);
+
+      // Inisialisasi TransactionManager dan ExpensePageManager hanya setelah login
+      if (!transactionManager) { // Pastikan hanya diinisialisasi sekali
+        transactionManager = new TransactionManager(supabase, currentUserId);
+      } else {
+        transactionManager.userId = currentUserId; // Update userId jika sudah ada
+      }
+      if (!expensePageManager) { // Pastikan hanya diinisialisasi sekali
+        expensePageManager = new ExpensePageManager(transactionManager, chartManager);
+      }
+
+      // Sembunyikan halaman login, tampilkan halaman utama
+      if (loginPage) loginPage.classList.add('hidden');
+      if (homePage) homePage.classList.remove('hidden');
+      if (logoutBtn) logoutBtn.classList.remove('hidden');
+      if (usernameEl && session.user.email) usernameEl.textContent = session.user.email; // Tampilkan email user
+
+      // Muat data dan perbarui UI
+      await transactionManager.loadTransactions();
+      await renderTransactions();
+      await updateSummary();
+      await updateCharts();
+      // Pastikan halaman expenses juga diperbarui jika pengguna beralih ke sana
+      if (!document.getElementById('expenses').classList.contains('hidden')) {
+        expensePageManager.renderExpensesPage();
+      }
+
+    } else {
+      // Pengguna belum login atau logout
+      currentUserId = null;
+      console.log('User logged out or not authenticated.');
+
+      // Sembunyikan halaman utama, tampilkan halaman login
+      if (loginPage) loginPage.classList.remove('hidden');
+      if (homePage) homePage.classList.add('hidden');
+      if (logoutBtn) logoutBtn.classList.add('hidden');
+      if (usernameEl) usernameEl.textContent = 'Guest'; // Set nama user ke Guest
+
+      // Kosongkan data dan UI jika tidak login
+      if (transactionManager) {
+        transactionManager.transactions = [];
+      }
+      await renderTransactions(); // Render dengan data kosong
+      await updateSummary(); // Update summary ke nol
+      await updateCharts(); // Update charts ke kosong
+    }
+  }
 });
 
 // Fungsi untuk merender daftar transaksi (Home Page)
@@ -280,7 +403,6 @@ async function renderTransactions(keyword = '') {
       await renderTransactions(keyword);
       await updateSummary();
       await updateCharts();
-      // Juga perbarui halaman expenses jika sedang aktif setelah menghapus dari home
       if (!document.getElementById('expenses').classList.contains('hidden')) {
         expensePageManager.renderExpensesPage();
       }
@@ -306,7 +428,7 @@ async function updateCharts() {
   chartManager.renderBarChart(monthlyData);
 
   const categoryData = transactionManager.getDataGroupedByCategory();
-  chartManager.renderPieChart(categoryData, 'pieChart', 'Expenses by Category'); // Pastikan ID canvas benar
+  chartManager.renderPieChart(categoryData, 'pieChart', 'Expenses by Category');
 
   chartManager.renderYearlyChart(monthlyData);
 }
