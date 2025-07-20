@@ -13,39 +13,84 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSummary();
   updateCharts();
 
-  document.getElementById('form-transaction').addEventListener('submit', e => {
-    e.preventDefault();
-    const form = e.target;
-    const newTransaction = {
-      title: form.title.value,
-      amount: parseInt(form.amount.value),
-      category: form.category.value,
-      type: form.type.value
-    };
-    transactionManager.addTransaction(newTransaction);
-    form.reset();
-    renderTransactions();
-    updateSummary();
-    updateCharts();
-  });
-
-  document.getElementById('search').addEventListener('input', e => {
-    const keyword = e.target.value;
-    renderTransactions(keyword);
-  });
-
-  document.getElementById('reset').addEventListener('click', () => {
-    if (confirm('Apakah yakin ingin mereset semua transaksi?')) {
-      transactionManager.resetAll();
+  // Submit transaksi baru
+  const form = document.getElementById('form-transaction');
+  if (form) {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const newTransaction = {
+        title: form.title.value,
+        amount: parseInt(form.amount.value),
+        category: form.category.value,
+        type: form.type.value
+      };
+      transactionManager.addTransaction(newTransaction);
+      form.reset();
       renderTransactions();
       updateSummary();
       updateCharts();
-    }
+    });
+  }
+
+  // Pencarian
+  const searchInput = document.getElementById('search');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => {
+      const keyword = e.target.value;
+      renderTransactions(keyword);
+    });
+  }
+
+  // Reset data
+  const resetBtn = document.getElementById('reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Apakah yakin ingin mereset semua transaksi?')) {
+        transactionManager.resetAll();
+        renderTransactions();
+        updateSummary();
+        updateCharts();
+      }
+    });
+  }
+
+  // Navigasi sidebar
+  document.querySelectorAll('.menu-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const targetId = link.dataset.target;
+
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.menu-link').forEach(link => {
+        link.classList.remove('active');
+      });
+
+      const targetPage = document.getElementById(targetId);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+      }
+
+      link.classList.add('active');
+    });
   });
+
+  // Toggle form transaksi
+  const addTransactionBtn = document.getElementById('add-transaction-btn');
+  const formSection = document.getElementById('form-section');
+  if (addTransactionBtn && formSection) {
+    addTransactionBtn.addEventListener('click', () => {
+      formSection.classList.toggle('hidden');
+    });
+  }
 });
 
 function renderTransactions(keyword = '') {
   const list = document.getElementById('transaction-list');
+  if (!list) return;
+
   list.innerHTML = '';
 
   const transactions = keyword
@@ -82,9 +127,13 @@ function renderTransactions(keyword = '') {
 
 function updateSummary() {
   const { income, expense, balance } = transactionManager.getSummary();
-  document.getElementById('income').textContent = formatRupiah(income);
-  document.getElementById('expense').textContent = formatRupiah(expense);
-  document.getElementById('balance').textContent = formatRupiah(balance);
+  const incomeEl = document.getElementById('income');
+  const expenseEl = document.getElementById('expense');
+  const balanceEl = document.getElementById('balance');
+
+  if (incomeEl) incomeEl.textContent = formatRupiah(income);
+  if (expenseEl) expenseEl.textContent = formatRupiah(expense);
+  if (balanceEl) balanceEl.textContent = formatRupiah(balance);
 }
 
 function updateCharts() {
@@ -92,26 +141,3 @@ function updateCharts() {
   chartManager.renderBarChart(data);
   chartManager.renderPieChart(data);
 }
-
-// Navigasi Sidebar
-document.querySelectorAll('.menu-link').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const targetId = link.dataset.target;
-
-    document.querySelectorAll('.page').forEach(page => {
-      page.classList.add('hidden');
-    });
-
-    document.querySelectorAll('.menu-link').forEach(link => {
-      link.classList.remove('active');
-    });
-
-    document.getElementById(targetId).classList.remove('hidden');
-    link.classList.add('active');
-  });
-});
-
-document.getElementById('add-transaction-btn').addEventListener('click', () => {
-  document.getElementById('form-section').classList.toggle('hidden');
-});
