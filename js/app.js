@@ -1,97 +1,94 @@
-import { TransactionManager } from "./transactionManager.js";
-import { ChartManager } from "./chartManager.js";
-import { formatRupiah, saveToStorage, getFromStorage } from "./utils.js";
+import TransactionManager from './transactionManager.js';
+import ChartManager from './chartManager.js';
+import { formatRupiah } from './utils.js';
 
-const transMgr = new TransactionManager();
-const chartMgr = new ChartManager();
+const transactionManager = new TransactionManager();
+const chartManager = new ChartManager(
+  document.getElementById('barChart'),
+  document.getElementById('pieChart')
+);
 
-const el = (id) => document.getElementById(id);
-const today = () => new Date().toISOString().slice(0, 10);
+document.addEventListener('DOMContentLoaded', () => {
+  renderTransactions();
+  updateSummary();
+  updateCharts();
 
-function updateUI() {
-  const list = el("transactionList");
-  list.innerHTML = "";
-  const filtered = transMgr.filterTransactions(el("searchInput").value);
-  filtered.forEach(t => {
-    const div = document.createElement("div");
-    div.className = "transaction";
-    div.innerHTML = `
-      <span>${t.description} (${t.category}) - ${formatRupiah(t.amount)}</span>
-      <div>
-        <button onclick="deleteTransaction(${t.id})">🗑️</button>
-      </div>`;
-    list.appendChild(div);
+  document.getElementById('form-transaction').addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target;
+    const newTransaction = {
+      title: form.title.value,
+      amount: parseInt(form.amount.value),
+      category: form.category.value,
+      type: form.type.value
+    };
+    transactionManager.addTransaction(newTransaction);
+    form.reset();
+    renderTransactions();
+    updateSummary();
+    updateCharts();
   });
 
-  el("todayTotal").textContent = formatRupiah(transMgr.getTodayTotal());
-  el("monthTotal").textContent = formatRupiah(transMgr.getMonthTotal());
+  document.getElementById('search').addEventListener('input', e => {
+    const keyword = e.target.value;
+    renderTransactions(keyword);
+  });
 
-  const saldo = parseFloat(el("initialBalance").value) || 0;
-  el("totalBalance").textContent = formatRupiah(transMgr.getBalance(saldo));
+  document.getElementById('reset').addEventListener('click', () => {
+    if (confirm('Apakah yakin ingin mereset semua transaksi?')) {
+      transactionManager.resetAll();
+      renderTransactions();
+      updateSummary();
+      updateCharts();
+    }
+  });
+});
 
-  chartMgr.renderCategoryChart(transMgr.getCategoryStats());
-  chartMgr.renderDateChart(transMgr.getDateStats());
+function renderTransactions(keyword = '') {
+  const list = document.getElementById('transaction-list');
+  list.innerHTML = '';
+
+  const transactions = keyword
+    ? transactionManager.search(keyword)
+    : transactionManager.getTransactions();
+
+  if (transactions.length === 0) {
+    list.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada transaksi</td></tr>';
+    return;
+  }
+
+  transactions.forEach(t => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${t.title}</td>
+      <td>${t.category}</td>
+      <td>${t.type === 'income' ? '+' : '-'}${formatRupiah(t.amount)}</td>
+      <td>
+        <button class="btn btn-sm btn-danger" data-id="${t.id}">Hapus</button>
+      </td>
+    `;
+    list.appendChild(row);
+  });
+
+  document.querySelectorAll('button[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      transactionManager.deleteTransaction(btn.dataset.id);
+      renderTransactions(keyword);
+      updateSummary();
+      updateCharts();
+    });
+  });
 }
 
-window.deleteTransaction = function (id) {
-  transMgr.deleteTransaction(id);
-  updateUI();
-};
+function updateSummary() {
+  const { income, expense, balance } = transactionManager.getSummary();
+  document.getElementById('income').textContent = formatRupiah(income);
+  document.getElementById('expense').textContent = formatRupiah(expense);
+  document.getElementById('balance').textContent = formatRupiah(balance);
+}
 
-el("addTransaction").onclick = () => {
-  const desc = el("descInput").value;
-  const amt = parseFloat(el("amountInput").value);
-  const cat = el("categoryInput").value;
-  if (!desc || !amt) return;
-  transMgr.addTransaction({ description: desc, amount: amt, category: cat, date: today() });
-  el("descInput").value = "";
-  el("amountInput").value = "";
-  updateUI();
-};
-
-el("initialBalance").oninput = () => updateUI();
-el("searchInput").oninput = () => updateUI();
-
-el("exportBtn").onclick = () => {
-  const blob = new Blob([JSON.stringify(transMgr.transactions)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "backup.json";
-  a.click();
-};
-
-el("importFile").onchange = (e) => {
-  const reader = new FileReader();
-  reader.onload = () => {
-    transMgr.transactions = JSON.parse(reader.result);
-    transMgr.save();
-    updateUI();
-  };
-  reader.readAsText(e.target.files[0]);
-};
-
-el("resetBtn").onclick = () => {
-  el("resetModal").classList.add("show");
-};
-
-el("confirmReset").onclick = () => {
-  if (el("resetPassword").value === "hansohe") {
-    transMgr.resetAll();
-    el("resetModal").classList.remove("show");
-    updateUI();
-  }
-};
-
-el("cancelReset").onclick = () => {
-  el("resetModal").classList.remove("show");
-};
-
-el("themeToggle").onclick = () => {
-  document.body.classList.toggle("dark");
-  saveToStorage("theme", document.body.classList.contains("dark"));
-};
-
-window.onload = () => {
-  if (getFromStorage("theme")) document.body.classList.add("dark");
-  updateUI();
-};
+function updateCharts() {
+  const data = transactionManager.getDataGroupedByCategory();
+  chartManager.renderBarChart(data);
+  chartManager.renderPieChart(data);
+}
