@@ -111,3 +111,8 @@ document.querySelectorAll('.menu-link').forEach(link => {
     link.classList.add('active');
   });
 });
+
+document.getElementById('add-transaction-btn').addEventListener('click', () => {
+  const formSection = document.getElementById('form-section');
+  formSection.classList.toggle('hidden');
+});
