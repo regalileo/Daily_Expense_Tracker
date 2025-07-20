@@ -5,6 +5,7 @@ body {
   background-color: #0e0e0e;
   color: #f0f0f0;
   display: flex;
+  min-height: 100vh; /* Pastikan body mengambil seluruh tinggi viewport */
 }
 
 h1, h2, h3 {
@@ -25,11 +26,11 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* Untuk menempatkan tombol logout di bawah */
+  justify-content: space-between;
 }
 
 .sidebar .user-profile {
-  width: 100%; /* Agar avatar dan username di tengah */
+  width: 100%;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -49,7 +50,7 @@ h1, h2, h3 {
 }
 
 .menu {
-  flex-grow: 1; /* Agar menu mengisi ruang yang tersedia */
+  flex-grow: 1;
   width: 100%;
 }
 
@@ -72,8 +73,8 @@ h1, h2, h3 {
 /* Tombol Logout di Sidebar */
 .logout-btn {
   width: 100%;
-  margin-top: 2rem; /* Spasi dari menu */
-  background-color: #f44336 !important; /* Warna merah untuk logout */
+  margin-top: 2rem;
+  background-color: #f44336 !important;
   color: #fff !important;
   border: none;
   border-radius: 10px;
@@ -88,15 +89,28 @@ h1, h2, h3 {
 }
 
 
-/* Main */
+/* Main Content Container */
 .main-content {
   flex: 1;
   padding: 2rem;
-  display: flex; /* Menggunakan flex untuk mengatur halaman */
+  display: flex;
   flex-direction: column;
-  justify-content: center; /* Pusatkan konten secara vertikal */
-  align-items: center; /* Pusatkan konten secara horizontal */
+  /* Hapus properti pemusatan dari sini untuk mencegah 'getaran' */
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* Biarkan konten di dalamnya yang mengatur pemusatan */
 }
+
+/* Styling untuk setiap halaman (page) */
+.page {
+  width: 100%;
+  flex-grow: 1; /* Izinkan halaman untuk mengisi ruang yang tersedia */
+  flex-shrink: 0; /* Cegah halaman menyusut di bawah kontennya */
+  /* Background color for pages to ensure consistent look */
+  background-color: #0e0e0e; /* Match body background */
+  padding-bottom: 2rem; /* Tambahkan padding bawah untuk konten */
+}
+
 
 header h1 {
   font-size: 2rem;
@@ -110,7 +124,7 @@ header h1 {
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
-  width: 100%; /* Agar mengisi lebar parent */
+  width: 100%;
   justify-content: center;
 }
 
@@ -139,7 +153,7 @@ header h1 {
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
-  width: 100%; /* Agar mengisi lebar parent */
+  width: 100%;
   justify-content: center;
 }
 
@@ -167,7 +181,7 @@ header h1 {
   padding: 1.5rem;
   border-radius: 10px;
   margin-bottom: 2rem;
-  width: 100%; /* Agar mengisi lebar parent */
+  width: 100%;
 }
 
 .form-group {
@@ -230,7 +244,7 @@ form button:hover,
 /* Transaction List */
 .transactions-section {
   margin-bottom: 2rem;
-  width: 100%; /* Agar mengisi lebar parent */
+  width: 100%;
 }
 
 #search {
@@ -298,7 +312,7 @@ table td button:hover {
   padding: 1rem;
   border-radius: 10px;
   margin-bottom: 2rem;
-  width: 100%; /* Agar mengisi lebar parent */
+  width: 100%;
 }
 
 .charts-wrapper {
@@ -381,11 +395,12 @@ table td button:hover {
 /* Login Page Specific Styling */
 #login-page {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column; /* Konten di dalamnya ditumpuk vertikal */
+  justify-content: center; /* Pusatkan konten secara vertikal dalam #login-page */
+  align-items: center; /* Pusatkan konten secara horizontal dalam #login-page */
   width: 100%;
-  min-height: 100vh; /* Pastikan mengisi seluruh tinggi viewport */
-  background-color: #0e0e0e; /* Latar belakang gelap */
+  flex-grow: 1; /* Izinkan halaman login mengisi ruang yang tersedia */
+  background-color: #0e0e0e;
 }
 
 .login-container {
@@ -395,8 +410,9 @@ table td button:hover {
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
   text-align: center;
   width: 100%;
-  max-width: 400px; /* Lebar maksimum form login */
+  max-width: 400px;
   box-sizing: border-box;
+  margin: auto; /* Ini juga membantu pemusatan */
 }
 
 .login-container h2 {
@@ -455,7 +471,7 @@ table td button:hover {
 }
 
 .auth-message {
-  color: #f44336; /* Warna merah untuk pesan error */
+  color: #f44336;
   margin-top: 1rem;
   font-weight: bold;
 }
@@ -464,7 +480,8 @@ table td button:hover {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   body {
-    flex-direction: column; /* Sidebar di atas main content */
+    flex-direction: column;
+    min-height: auto;
   }
 
   .sidebar {
@@ -476,11 +493,11 @@ table td button:hover {
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    order: -1; /* Pindahkan sidebar ke atas */
+    order: -1;
   }
 
   .sidebar .user-profile {
-    display: none; /* Sembunyikan profil di mobile */
+    display: none;
   }
 
   .sidebar .menu {
@@ -496,15 +513,15 @@ table td button:hover {
   }
 
   .logout-btn {
-    width: auto; /* Sesuaikan lebar tombol logout */
+    width: auto;
     margin-top: 0;
-    margin-left: 1rem; /* Spasi dari menu */
+    margin-left: 1rem;
   }
 
   .main-content {
     padding: 1rem;
     margin-top: 0;
-    width: 100%; /* Pastikan main content mengisi lebar penuh */
+    width: 100%;
   }
 
   .summary, .quick-actions, .form-section, .transactions-section, .chart-section {
@@ -526,6 +543,6 @@ table td button:hover {
 
   .login-container {
     padding: 1.5rem;
-    margin: 1rem; /* Tambahkan margin agar tidak terlalu mepet */
+    margin: 1rem;
   }
 }
