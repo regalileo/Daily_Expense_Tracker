@@ -1,4 +1,4 @@
-import TransactionManager from './transactionManager.js';
+import TransactionManager from 'js/transactionManager.js';
 import ChartManager from './chartManager.js';
 import { formatRupiah } from './utils.js';
 
