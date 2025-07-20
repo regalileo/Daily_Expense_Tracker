@@ -1,39 +1,106 @@
-import { formatCurrency, saveToStorage, loadFromStorage } from './utils.js';
+import { createClient } from 'https://qfefytzsknodsqbvfwxt.supabase.co';
+import { formatCurrency } from './utils.js';
 
 export default class TransactionManager {
-  constructor(storageKey = 'transactions') {
-    this.storageKey = storageKey;
-    this.transactions = loadFromStorage(this.storageKey) || [];
+  constructor(supabaseUrl, supabaseAnonKey, userId) {
+    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+    this.userId = userId;
+    this.transactions = []; // Data akan dimuat dari Supabase, 
   }
 
-  addTransaction(data) {
+  // Memuat transaksi dari Supabase
+  async loadTransactions() {
+    if (!this.userId) {
+      console.warn("User ID not available. Cannot load transactions.");
+      this.transactions = [];
+      return;
+    }
+    try {
+      const { data, error } = await this.supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', this.userId) // Filter berdasarkan user_id
+        .order('id', { ascending: false }); // Urutkan berdasarkan ID terbaru
+
+      if (error) throw error;
+      this.transactions = data || [];
+      console.log("Transactions loaded from Supabase:", this.transactions);
+    } catch (error) {
+      console.error("Error loading transactions from Supabase:", error.message);
+      this.transactions = [];
+    }
+  }
+
+  async addTransaction(data) {
+    if (!this.userId) {
+      console.error("User not authenticated. Cannot add transaction.");
+      return;
+    }
     const newData = {
-      id: Date.now(),
+      id: Date.now(), // Gunakan timestamp sebagai ID unik
+      user_id: this.userId, // Tambahkan user_id
       ...data
     };
-    this.transactions.push(newData);
-    this.save();
+    try {
+      const { data: insertedData, error } = await this.supabase
+        .from('transactions')
+        .insert([newData])
+        .select(); // Mengembalikan data yang baru saja dimasukkan
+
+      if (error) throw error;
+      this.transactions.push(insertedData[0]); // Tambahkan transaksi baru ke array lokal
+      console.log("Transaction added to Supabase:", insertedData[0]);
+    } catch (error) {
+      console.error("Error adding transaction to Supabase:", error.message);
+    }
   }
 
-  deleteTransaction(id) {
-    this.transactions = this.transactions.filter(t => t.id !== parseInt(id)); // Pastikan id adalah integer
-    this.save();
+  async deleteTransaction(id) {
+    if (!this.userId) {
+      console.error("User not authenticated. Cannot delete transaction.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from('transactions')
+        .delete()
+        .eq('id', parseInt(id))
+        .eq('user_id', this.userId); // Pastikan hanya menghapus transaksi milik user ini
+
+      if (error) throw error;
+      this.transactions = this.transactions.filter(t => t.id !== parseInt(id));
+      console.log("Transaction deleted from Supabase:", id);
+    } catch (error) {
+      console.error("Error deleting transaction from Supabase:", error.message);
+    }
   }
 
-  resetAll() {
-    this.transactions = [];
-    this.save();
-  }
+  async resetAll() {
+    if (!this.userId) {
+      console.error("User not authenticated. Cannot reset all transactions.");
+      return;
+    }
+    try {
+      // Hapus semua transaksi milik user ini
+      const { error } = await this.supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', this.userId);
 
-  save() {
-    saveToStorage(this.storageKey, this.transactions);
+      if (error) throw error;
+      this.transactions = [];
+      console.log("All transactions reset in Supabase for user:", this.userId);
+    } catch (error) {
+      console.error("Error resetting all transactions in Supabase:", error.message);
+    }
   }
 
   getTransactions() {
-    return this.transactions;
+    return this.transactions; // Mengembalikan data yang ada di memori lokal
   }
 
   search(keyword) {
+    // Pencarian dilakukan pada data yang sudah dimuat di memori
     return this.transactions.filter(t =>
       t.title.toLowerCase().includes(keyword.toLowerCase())
     );
@@ -55,11 +122,9 @@ export default class TransactionManager {
     };
   }
 
-  // Memperbarui logika ini agar hanya menghitung pengeluaran per kategori untuk Pie Chart
   getDataGroupedByCategory() {
     const data = {};
     for (const t of this.transactions) {
-      // Hanya tambahkan pengeluaran ke dalam perhitungan kategori
       if (t.type === "expense") {
         if (!data[t.category]) data[t.category] = 0;
         data[t.category] += parseInt(t.amount);
