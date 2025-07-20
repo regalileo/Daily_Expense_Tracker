@@ -1,12 +1,17 @@
-import { formatRupiah, saveToStorage, getFromStorage } from "./utils.js";
+import { formatRupiah, saveToStorage, loadFromStorage } from './utils.js';
 
-export class TransactionManager {
-  constructor() {
-    this.transactions = getFromStorage("transactions", []);
+export default class TransactionManager {
+  constructor(storageKey = 'transactions') {
+    this.storageKey = storageKey;
+    this.transactions = loadFromStorage(this.storageKey) || [];
   }
 
   addTransaction(data) {
-    this.transactions.push({ ...data, id: Date.now() });
+    const newData = {
+      id: Date.now(),
+      ...data
+    };
+    this.transactions.push(newData);
     this.save();
   }
 
@@ -15,55 +20,51 @@ export class TransactionManager {
     this.save();
   }
 
-  editTransaction(id, newData) {
-    this.transactions = this.transactions.map(t => t.id === id ? { ...t, ...newData } : t);
-    this.save();
-  }
-
-  filterTransactions(keyword) {
-    return this.transactions.filter(t => t.description.toLowerCase().includes(keyword.toLowerCase()));
-  }
-
-  save() {
-    saveToStorage("transactions", this.transactions);
-  }
-
-  getTodayTotal() {
-    const today = new Date().toISOString().slice(0, 10);
-    return this.transactions
-      .filter(t => t.date === today)
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-  }
-
-  getMonthTotal() {
-    const month = new Date().toISOString().slice(0, 7);
-    return this.transactions
-      .filter(t => t.date.startsWith(month))
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-  }
-
-  getBalance(initial) {
-    return initial - this.transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-  }
-
-  getCategoryStats() {
-    const result = {};
-    this.transactions.forEach(t => {
-      result[t.category] = (result[t.category] || 0) + parseFloat(t.amount);
-    });
-    return result;
-  }
-
-  getDateStats() {
-    const result = {};
-    this.transactions.forEach(t => {
-      result[t.date] = (result[t.date] || 0) + parseFloat(t.amount);
-    });
-    return result;
-  }
-
   resetAll() {
     this.transactions = [];
     this.save();
+  }
+
+  save() {
+    saveToStorage(this.storageKey, this.transactions);
+  }
+
+  getTransactions() {
+    return this.transactions;
+  }
+
+  search(keyword) {
+    return this.transactions.filter(t =>
+      t.title.toLowerCase().includes(keyword.toLowerCase())
+    );
+  }
+
+  getTotalByType(type) {
+    return this.transactions
+      .filter(t => t.type === type)
+      .reduce((sum, t) => sum + parseInt(t.amount), 0);
+  }
+
+  getSummary() {
+    const income = this.getTotalByType("income");
+    const expense = this.getTotalByType("expense");
+    return {
+      income,
+      expense,
+      balance: income - expense
+    };
+  }
+
+  getDataGroupedByCategory() {
+    const data = {};
+    for (const t of this.transactions) {
+      if (!data[t.category]) data[t.category] = 0;
+      if (t.type === "income") {
+        data[t.category] += parseInt(t.amount);
+      } else {
+        data[t.category] -= parseInt(t.amount);
+      }
+    }
+    return data;
   }
 }
