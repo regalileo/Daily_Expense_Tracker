@@ -22,7 +22,7 @@ const registerForm = document.getElementById('register-form');
 const showRegisterLink = document.getElementById('show-register');
 const showLoginLink = document.getElementById('show-login');
 const authMessage = document.getElementById('auth-message');
-const usernameEl = document.getElementById('profile-username'); // Menggunakan ID baru
+const usernameEl = document.getElementById('profile-username');
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Inisialisasi Supabase Client HANYA DI SINI
@@ -292,15 +292,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
       const email = registerForm['register-email'].value;
       const password = registerForm['register-password'].value;
+      const name = registerForm['register-name'].value.trim(); // Ambil nilai nama
+
       authMessage.textContent = 'Mendaftar...';
 
       try {
-        const { error } = await supabase.auth.signUp({ email, password });
+        // Tambahkan data user_metadata saat signUp
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name // Simpan nama di user_metadata
+            }
+          }
+        });
         if (error) throw error;
         authMessage.textContent = 'Pendaftaran berhasil! Silakan masuk.';
         registerForm.classList.add('hidden');
         loginForm.classList.remove('hidden');
-        loginForm['login-email'].value = email; // Isi email di form login
+        loginForm['login-email'].value = email;
         loginForm['login-password'].focus();
       } catch (error) {
         authMessage.textContent = `Pendaftaran Gagal: ${error.message}`;
@@ -315,7 +326,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        // handleAuthChange akan dipanggil oleh onAuthStateChange listener
       } catch (error) {
         console.error('Logout error:', error.message);
       }
@@ -325,11 +335,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Fungsi untuk menangani perubahan status otentikasi
   async function handleAuthChange(session) {
     if (session) {
-      // Pengguna sudah login
       currentUserId = session.user.id;
       console.log('User logged in:', currentUserId);
 
-      // Inisialisasi TransactionManager dan ExpensePageManager hanya setelah login
+      // Inisialisasi TransactionManager dan ExpensePageManager
       if (!transactionManager) {
         transactionManager = new TransactionManager(supabase, currentUserId);
       } else {
@@ -339,18 +348,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         expensePageManager = new ExpensePageManager(transactionManager, chartManager);
       }
 
-      // Sembunyikan halaman login, tampilkan halaman utama
+      // Tampilkan nama dari user_metadata jika ada, fallback ke email, lalu 'User'
+      if (usernameEl) {
+        const userName = session.user.user_metadata?.full_name || session.user.email || 'User';
+        usernameEl.textContent = userName;
+      }
+
       if (loginPage) loginPage.classList.add('hidden');
       if (homePage) homePage.classList.remove('hidden');
       if (logoutBtn) logoutBtn.classList.remove('hidden');
-      if (usernameEl && session.user.email) {
-        usernameEl.textContent = session.user.email; // Tampilkan email user
-      } else {
-        usernameEl.textContent = 'User'; // Default jika email tidak tersedia
-      }
 
-
-      // Muat data dan perbarui UI
       await transactionManager.loadTransactions();
       await renderTransactions();
       await updateSummary();
@@ -360,17 +367,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
     } else {
-      // Pengguna belum login atau logout
       currentUserId = null;
       console.log('User logged out or not authenticated.');
 
-      // Sembunyikan halaman utama, tampilkan halaman login
       if (loginPage) loginPage.classList.remove('hidden');
       if (homePage) homePage.classList.add('hidden');
       if (logoutBtn) logoutBtn.classList.add('hidden');
-      if (usernameEl) usernameEl.textContent = 'Guest'; // Set nama user ke Guest
+      if (usernameEl) usernameEl.textContent = 'Guest';
 
-      // Kosongkan data dan UI jika tidak login
       if (transactionManager) {
         transactionManager.transactions = [];
       }
