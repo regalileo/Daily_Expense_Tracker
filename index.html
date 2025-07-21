@@ -13,7 +13,7 @@
   <div class="sidebar">
     <div class="user-profile">
       <img src="assets/profil.jpg" alt="Avatar" class="avatar"/>
-      <p class="username">Regal Nugraha</p>
+      <p class="username" id="profile-username"></p> <!-- Ditambahkan ID dan dikosongkan -->
     </div>
     <nav class="menu">
       <a href="#" class="menu-link active" data-target="home">🏠 Home</a>
@@ -22,11 +22,10 @@
       <a href="#" class="menu-link" data-target="settings">⚙ Settings</a>
       <a href="#" class="menu-link" data-target="support">📝 Support</a>
     </nav>
-    <button id="logout-btn" class="quick-action-btn logout-btn hidden">🚪 Logout</button> <!-- Tombol Logout -->
+    <button id="logout-btn" class="quick-action-btn logout-btn hidden">🚪 Logout</button>
   </div>
 
   <main class="main-content">
-    <!-- Halaman Login -->
     <section id="login-page" class="page">
       <div class="login-container">
         <h2>Selamat Datang!</h2>
@@ -60,8 +59,7 @@
       </div>
     </section>
 
-    <!-- Konten Aplikasi Utama (Dashboard, Expenses, Reports, dll.) -->
-    <section id="home" class="page hidden"> <!-- Default hidden -->
+    <section id="home" class="page hidden">
       <header>
         <h1>Expense Dashboard</h1>
       </header>
