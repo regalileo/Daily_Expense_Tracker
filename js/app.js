@@ -4,9 +4,9 @@ import ExpensePageManager from './expensePageManager.js';
 import { formatCurrency, downloadJSON, readJSONFile } from './utils.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Konfigurasi Supabase 
-const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'
+const SUPABASE_URL = 'https://qfefytzsknodsqbvfwxt.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZWZ5dHpza25vZHNxYnZmd3h0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjM0MjUsImV4cCI6MjA2ODU5OTQyNX0.Uasy9CgDOlmTrHf2LunrJIFM_bCr7gnDYplbkD-dexA'; 
+
 let supabase;
 let transactionManager;
 let chartManager;
@@ -22,14 +22,27 @@ const registerForm = document.getElementById('register-form');
 const showRegisterLink = document.getElementById('show-register');
 const showLoginLink = document.getElementById('show-login');
 const authMessage = document.getElementById('auth-message');
-const usernameEl = document.querySelector('.username'); // Untuk menampilkan email user
+const usernameEl = document.getElementById('profile-username'); // Menggunakan ID baru
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Inisialisasi Supabase Client HANYA DI SINI
   try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const urlToUse = SUPABASE_URL.trim();
+    const keyToUse = SUPABASE_ANON_KEY.trim();
+
+    console.log('Final URL being passed to createClient:', urlToUse);
+    console.log('Final Key being passed to createClient:', keyToUse);
+    console.log('Type of URL:', typeof urlToUse);
+    console.log('Type of Key:', typeof keyToUse);
+
+    supabase = createClient(urlToUse, keyToUse);
   } catch (initError) {
     console.error("Error initializing Supabase client:", initError);
+    if (authMessage) {
+        authMessage.textContent = "Error inisialisasi aplikasi. Pastikan URL Supabase benar.";
+        loginPage.classList.remove('hidden');
+        homePage.classList.add('hidden');
+    }
     return;
   }
 
@@ -317,12 +330,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('User logged in:', currentUserId);
 
       // Inisialisasi TransactionManager dan ExpensePageManager hanya setelah login
-      if (!transactionManager) { // Pastikan hanya diinisialisasi sekali
+      if (!transactionManager) {
         transactionManager = new TransactionManager(supabase, currentUserId);
       } else {
-        transactionManager.userId = currentUserId; // Update userId jika sudah ada
+        transactionManager.userId = currentUserId;
       }
-      if (!expensePageManager) { // Pastikan hanya diinisialisasi sekali
+      if (!expensePageManager) {
         expensePageManager = new ExpensePageManager(transactionManager, chartManager);
       }
 
@@ -330,14 +343,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (loginPage) loginPage.classList.add('hidden');
       if (homePage) homePage.classList.remove('hidden');
       if (logoutBtn) logoutBtn.classList.remove('hidden');
-      if (usernameEl && session.user.email) usernameEl.textContent = session.user.email; // Tampilkan email user
+      if (usernameEl && session.user.email) {
+        usernameEl.textContent = session.user.email; // Tampilkan email user
+      } else {
+        usernameEl.textContent = 'User'; // Default jika email tidak tersedia
+      }
+
 
       // Muat data dan perbarui UI
       await transactionManager.loadTransactions();
       await renderTransactions();
       await updateSummary();
       await updateCharts();
-      // Pastikan halaman expenses juga diperbarui jika pengguna beralih ke sana
       if (!document.getElementById('expenses').classList.contains('hidden')) {
         expensePageManager.renderExpensesPage();
       }
@@ -357,9 +374,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (transactionManager) {
         transactionManager.transactions = [];
       }
-      await renderTransactions(); // Render dengan data kosong
-      await updateSummary(); // Update summary ke nol
-      await updateCharts(); // Update charts ke kosong
+      await renderTransactions();
+      await updateSummary();
+      await updateCharts();
     }
   }
 });
